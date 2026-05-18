@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alex Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="phone" aria-label="Alex mobile prototype">
+        <div class="status">
+          <span>9:41</span>
+          <span class="status-icons">5G 100%</span>
+        </div>
+
+        <section class="screen active" id="welcome-screen">
+          <div class="brand-row">
+            <span class="alex-mark"></span>
+            <span>Different Thinking</span>
+          </div>
+          <div class="welcome-orb">
+            <img class="orb-image rest" id="welcome-orb" alt="Alex Living Orb" />
+          </div>
+          <div class="welcome-copy">
+            <p class="eyebrow">Ask Alex</p>
+            <h1>Discover your Unique Ability.</h1>
+            <p>
+              Twelve quick pairwise choices. No wrong answers. Alex uses the result to
+              coach around how your mind naturally creates value.
+            </p>
+          </div>
+          <div class="invite-card">
+            <label for="invite-code">Private beta invite</label>
+            <div class="invite-input">
+              <input id="invite-code" value="ALEX-BETA-01" />
+              <button id="start-quiz">Start</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="quiz-screen">
+          <div class="topbar">
+            <button class="icon-button" data-back="welcome-screen" aria-label="Back">‹</button>
+            <div>
+              <p class="eyebrow">Unique Ability Quiz</p>
+              <h2>Most like me</h2>
+            </div>
+            <span id="quiz-count">1/12</span>
+          </div>
+          <div class="progress">
+            <span id="quiz-progress"></span>
+          </div>
+          <div class="question-card">
+            <button class="choice" data-choice="A">
+              <span>A</span>
+              <strong id="choice-a"></strong>
+            </button>
+            <div class="or">or</div>
+            <button class="choice" data-choice="B">
+              <span>B</span>
+              <strong id="choice-b"></strong>
+            </button>
+          </div>
+          <p class="helper-text">Pick the sentence that feels closer today. The scoring compares engines head-to-head.</p>
+        </section>
+
+        <section class="screen reveal-screen" id="reveal-screen">
+          <div class="reveal-stage" id="reveal-stage">
+            <img class="orb-image speaking" id="reveal-orb" alt="Your archetype Living Orb" />
+            <p class="eyebrow" id="reveal-kicker"></p>
+            <h2 id="reveal-title"></h2>
+            <p id="reveal-body"></p>
+            <div class="engine-bars" id="engine-bars"></div>
+          </div>
+          <div class="reveal-controls">
+            <button class="ghost-button" id="prev-reveal">Back</button>
+            <div class="dots" id="reveal-dots"></div>
+            <button id="next-reveal">Next</button>
+          </div>
+        </section>
+
+        <section class="screen" id="download-screen">
+          <div class="topbar">
+            <button class="icon-button" data-back="reveal-screen" aria-label="Back">‹</button>
+            <div>
+              <p class="eyebrow">Deep Download</p>
+              <h2>Build coaching around real life.</h2>
+            </div>
+          </div>
+          <div class="download-card">
+            <p>
+              You have your Unique Ability set. Deep Download adds the terrain:
+              your week, energy rhythm, support system, reset strategies, and how
+              direct you want Alex to be.
+            </p>
+            <div class="download-list">
+              <span>North star</span>
+              <span>First focus goal</span>
+              <span>Energy rhythm</span>
+              <span>Breakdown stage</span>
+              <span>Environment</span>
+              <span>Support system</span>
+              <span>Reset strategies</span>
+              <span>Coaching style</span>
+            </div>
+          </div>
+          <button class="full-button" id="start-app">Talk to Alex</button>
+        </section>
+
+        <section class="screen app-screen" id="app-screen">
+          <div class="app-view active" id="talk-view">
+            <div class="topbar">
+              <div>
+                <h2><span>Your Coach</span>Alex</h2>
+              </div>
+              <span class="alex-mark"></span>
+            </div>
+            <div class="orb-panel">
+              <img class="orb-image rest" id="talk-orb" alt="Alex Living Orb" />
+              <div class="orb-state" id="orb-state">Rest</div>
+            </div>
+            <div class="talk-actions">
+              <button class="voice-button" id="voice-button" aria-label="Start voice session">
+                <span></span>
+              </button>
+              <button class="text-mode-button" id="mode-toggle" aria-label="Switch mode">≡</button>
+              <button class="stop-button" id="finish-session" aria-label="Finish session">■</button>
+            </div>
+            <div class="transcript" id="transcript">
+              <div class="bubble alex">I’m Alex. Tell me what you want to work through, or brain dump what is in your head.</div>
+            </div>
+            <form class="chat-composer" id="chat-form">
+              <input id="chat-input" autocomplete="off" placeholder="Message Alex..." />
+              <button id="chat-send" type="submit">Send</button>
+            </form>
+            <div class="mode-label" id="mode-label">Conversation Coaching</div>
+          </div>
+
+          <div class="app-view" id="library-view">
+            <div class="topbar">
+              <div>
+                <h2><span>Your Curated</span>Feed</h2>
+              </div>
+              <span class="alex-mark"></span>
+            </div>
+            <div class="top-of-mind">
+              <h3>Top of mind</h3>
+              <div class="meta"><span>Strength Snapshot</span><span>Life</span><span>Decision</span></div>
+              <p id="top-card-summary"></p>
+              <button class="ghost-button" data-talk-context="top">Talk about this <span class="alex-mark mini"></span></button>
+            </div>
+            <div class="library-dots"><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="areas" id="areas"></div>
+            <div class="filters" id="filters"></div>
+            <div class="card-list" id="card-list"></div>
+          </div>
+
+          <nav class="tabbar">
+            <button class="tab active" data-tab="talk-view">Talk</button>
+            <button class="tab" data-tab="library-view">Library</button>
+          </nav>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="card-dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow" id="dialog-type"></p>
+          <h3 id="dialog-title"></h3>
+        </div>
+        <button class="icon-button" id="close-dialog" aria-label="Close">×</button>
+      </div>
+      <p id="dialog-summary"></p>
+      <div class="detail-grid" id="dialog-details"></div>
+      <button class="full-button" id="dialog-talk">Talk about this</button>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+.env.local
+.DS_Store
+node_modules/
+npm-debug.log*
+*.pdf
+Alex Master Product Logic v2 15.05.26
+assets/orbs/
