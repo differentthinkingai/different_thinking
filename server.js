@@ -7,9 +7,12 @@ loadLocalEnv(path.join(root, ".env.local"));
 
 const port = Number(process.env.PORT || 8123);
 const host = process.env.HOST || "0.0.0.0";
-const provider = process.env.AI_PROVIDER || "gemini";
+const provider = process.env.AI_PROVIDER || "vertex";
 const openaiModel = process.env.OPENAI_MODEL || "gpt-5-nano";
 const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+const vertexModel = process.env.VERTEX_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const vertexLocation = process.env.GOOGLE_CLOUD_LOCATION || process.env.VERTEX_LOCATION || "global";
+const vertexProject = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -78,6 +81,11 @@ async function handleChat(req, res) {
     return;
   }
 
+  if (provider === "vertex" && !vertexProject) {
+    sendJson(res, 500, { error: "GOOGLE_CLOUD_PROJECT is not set on the server." });
+    return;
+  }
+
   try {
     const body = JSON.parse(await readBody(req));
     const messages = Array.isArray(body.messages) ? body.messages.slice(-10) : [];
@@ -92,14 +100,76 @@ async function handleChat(req, res) {
       content: String(message.content || "").slice(0, 2000)
     }));
 
+    const systemInstructions = `${instructions}\nCurrent mode: ${mode}.\n${profileLine}`;
     const reply = provider === "gemini"
-      ? await askGemini(input, `${instructions}\nCurrent mode: ${mode}.\n${profileLine}`)
-      : await askOpenAI(input, `${instructions}\nCurrent mode: ${mode}.\n${profileLine}`);
+      ? await askGemini(input, systemInstructions)
+      : provider === "openai"
+        ? await askOpenAI(input, systemInstructions)
+        : await askVertex(input, systemInstructions);
 
     sendJson(res, 200, { reply });
   } catch (error) {
     sendJson(res, 500, { error: error.message });
   }
+}
+
+async function askVertex(input, systemInstructions) {
+  const accessToken = await getGoogleAccessToken();
+  const endpoint = vertexLocation === "global"
+    ? "https://aiplatform.googleapis.com"
+    : `https://${vertexLocation}-aiplatform.googleapis.com`;
+  const url = `${endpoint}/v1/projects/${encodeURIComponent(vertexProject)}/locations/${encodeURIComponent(vertexLocation)}/publishers/google/models/${encodeURIComponent(vertexModel)}:generateContent`;
+  const contents = input.map((message) => ({
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.content }]
+  }));
+
+  const vertexResponse = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: systemInstructions }]
+      },
+      contents,
+      generationConfig: {
+        maxOutputTokens: 220,
+        temperature: 0.7
+      }
+    })
+  });
+
+  const data = await vertexResponse.json();
+  if (!vertexResponse.ok) {
+    throw new Error(data.error?.message || "Vertex AI request failed.");
+  }
+
+  return extractGeminiText(data);
+}
+
+async function getGoogleAccessToken() {
+  if (process.env.GOOGLE_OAUTH_ACCESS_TOKEN) {
+    return process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
+  }
+
+  const metadataResponse = await fetch(
+    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+    { headers: { "Metadata-Flavor": "Google" } }
+  );
+
+  if (!metadataResponse.ok) {
+    throw new Error("Could not get Google ADC token from the Cloud Run metadata server.");
+  }
+
+  const token = await metadataResponse.json();
+  if (!token.access_token) {
+    throw new Error("Google metadata server returned no access token.");
+  }
+
+  return token.access_token;
 }
 
 async function askOpenAI(input, systemInstructions) {
@@ -152,6 +222,10 @@ async function askGemini(input, systemInstructions) {
     throw new Error(data.error?.message || "Gemini request failed.");
   }
 
+  return extractGeminiText(data);
+}
+
+function extractGeminiText(data) {
   const reply = data.candidates?.[0]?.content?.parts
     ?.map((part) => part.text || "")
     ?.join("")
@@ -216,5 +290,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, host, () => {
   console.log(`Alex prototype running on ${host}:${port}`);
   console.log(`Provider: ${provider}`);
-  console.log(`Model: ${provider === "gemini" ? geminiModel : openaiModel}`);
+  console.log(`Model: ${provider === "gemini" ? geminiModel : provider === "openai" ? openaiModel : vertexModel}`);
 });
