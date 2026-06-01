@@ -156,6 +156,14 @@ h1 {
   letter-spacing: 0;
 }
 
+.welcome-copy h1 {
+  max-width: 100%;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
 h2 {
   margin-bottom: 0;
   font-size: 24px;
