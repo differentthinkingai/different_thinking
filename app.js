@@ -116,6 +116,11 @@ const state = {
   talkUiMode: "voice",
   talkMode: "Conversation",
   orbMode: "rest",
+  voiceStatus: "idle",
+  voiceRecorder: null,
+  voiceRecordingStartedAt: 0,
+  voiceMaxTimer: null,
+  activeVoiceAudio: null,
   messages: [
     {
       role: "assistant",
@@ -146,6 +151,16 @@ function setTalkUiMode(mode) {
     $("#transcript").scrollTop = $("#transcript").scrollHeight;
     $("#chat-input").focus();
   }
+}
+
+function getProfilePayload() {
+  return state.result ? {
+    handle: state.result.handle,
+    capability: state.result.capability,
+    primary: engines[state.result.primary].name,
+    amplifier: engines[state.result.amplifier].name,
+    rawScores: state.result.raw
+  } : null;
 }
 
 function scoreQuiz() {
@@ -290,6 +305,253 @@ function setOrbImages() {
   $("#talk-orb")?.classList.add(state.orbMode);
 }
 
+function setVoiceStatus(status) {
+  state.voiceStatus = status;
+  state.orbMode = status === "listening" ? "listening" : status === "thinking" ? "thinking" : status === "speaking" ? "speaking" : "rest";
+  const label = status === "listening" ? "Listening" : status === "thinking" ? "Thinking" : status === "speaking" ? "Speaking" : "Rest";
+  $("#orb-state").textContent = label;
+  setOrbImages();
+
+  const voiceButton = $("#voice-button");
+  const stopButton = $("#finish-session");
+  const textButton = $("#mode-toggle");
+  voiceButton?.classList.toggle("is-recording", status === "listening");
+  voiceButton?.classList.toggle("is-speaking", status === "speaking");
+  if (voiceButton) {
+    voiceButton.disabled = status === "thinking";
+    voiceButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Stop Alex voice" : "Start voice chat");
+  }
+  if (stopButton) {
+    stopButton.disabled = status === "idle";
+    stopButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Stop Alex voice" : "Stop voice chat");
+  }
+  if (textButton) textButton.disabled = status === "listening" || status === "thinking";
+}
+
+async function handleVoiceButton() {
+  if (state.voiceStatus === "listening") {
+    await stopVoiceRecording();
+    return;
+  }
+
+  if (state.voiceStatus === "speaking") {
+    stopActiveVoiceAudio();
+    return;
+  }
+
+  await startVoiceRecording();
+}
+
+async function handleVoiceStop() {
+  if (state.voiceStatus === "listening") {
+    await stopVoiceRecording();
+    return;
+  }
+
+  if (state.voiceStatus === "speaking") {
+    stopActiveVoiceAudio();
+  }
+}
+
+async function startVoiceRecording() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    appendMessage("assistant", "Voice recording is not available in this browser yet.");
+    return;
+  }
+
+  try {
+    stopActiveVoiceAudio();
+    state.voiceRecorder = await createPcmRecorder();
+    state.voiceRecordingStartedAt = Date.now();
+    state.voiceMaxTimer = window.setTimeout(() => {
+      if (state.voiceStatus === "listening") stopVoiceRecording();
+    }, 30000);
+    setVoiceStatus("listening");
+  } catch (error) {
+    setVoiceStatus("idle");
+    appendMessage("assistant", error.name === "NotAllowedError"
+      ? "Microphone permission was not allowed. Please allow microphone access to use voice chat."
+      : "I could not start voice recording. Please try again.");
+  }
+}
+
+async function stopVoiceRecording() {
+  const recorder = state.voiceRecorder;
+  if (!recorder) return;
+
+  state.voiceRecorder = null;
+  window.clearTimeout(state.voiceMaxTimer);
+  state.voiceMaxTimer = null;
+  setVoiceStatus("thinking");
+
+  try {
+    const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
+    const recording = await recorder.stop();
+    if (recordingDuration < 600) {
+      throw new Error("I need a slightly longer voice note to hear you clearly.");
+    }
+    await askAlexByVoice(recording.audioBuffer, recording.sampleRateHertz);
+  } catch (error) {
+    appendMessage("assistant", error.message || "Voice chat did not work this time. Please try again.");
+    setVoiceStatus("idle");
+  }
+}
+
+async function createPcmRecorder() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true
+    }
+  });
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  const audioContext = new AudioContextClass();
+  await audioContext.resume();
+  const source = audioContext.createMediaStreamSource(stream);
+  const processor = audioContext.createScriptProcessor(4096, 1, 1);
+  const chunks = [];
+
+  processor.onaudioprocess = (event) => {
+    chunks.push(new Float32Array(event.inputBuffer.getChannelData(0)));
+  };
+
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+
+  return {
+    sampleRateHertz: audioContext.sampleRate,
+    async stop() {
+      processor.disconnect();
+      source.disconnect();
+      stream.getTracks().forEach((track) => track.stop());
+      await audioContext.close();
+      return {
+        audioBuffer: encodeWav(mergeAudioChunks(chunks), audioContext.sampleRate),
+        sampleRateHertz: audioContext.sampleRate
+      };
+    }
+  };
+}
+
+function mergeAudioChunks(chunks) {
+  const length = chunks.reduce((total, chunk) => total + chunk.length, 0);
+  const samples = new Float32Array(length);
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    samples.set(chunk, offset);
+    offset += chunk.length;
+  });
+  return samples;
+}
+
+function encodeWav(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, samples.length * 2, true);
+
+  let offset = 44;
+  for (const sample of samples) {
+    const clamped = Math.max(-1, Math.min(1, sample));
+    view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff, true);
+    offset += 2;
+  }
+  return buffer;
+}
+
+function writeAscii(view, offset, text) {
+  for (let i = 0; i < text.length; i += 1) {
+    view.setUint8(offset + i, text.charCodeAt(i));
+  }
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
+async function askAlexByVoice(audioBuffer, sampleRateHertz) {
+  const response = await fetch("/api/voice-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages: state.messages,
+      profile: getProfilePayload(),
+      mode: state.talkMode,
+      audioContent: arrayBufferToBase64(audioBuffer),
+      sampleRateHertz
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Alex voice is unavailable.");
+
+  appendMessage("user", data.transcript);
+  appendMessage("assistant", data.reply);
+  state.messages.push(
+    { role: "user", content: data.transcript },
+    { role: "assistant", content: data.reply }
+  );
+
+  if (data.audioContent) {
+    await playVoiceOutput(data.audioContent, data.audioMimeType || "audio/mpeg");
+  } else {
+    setVoiceStatus("idle");
+  }
+}
+
+function playVoiceOutput(audioContent, mimeType) {
+  return new Promise((resolve) => {
+    stopActiveVoiceAudio(false);
+    const audio = new Audio(`data:${mimeType};base64,${audioContent}`);
+    state.activeVoiceAudio = audio;
+    setVoiceStatus("speaking");
+
+    audio.addEventListener("ended", () => {
+      if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      setVoiceStatus("idle");
+      resolve();
+    }, { once: true });
+
+    audio.addEventListener("error", () => {
+      if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      appendMessage("assistant", "Alex replied in text, but the audio could not play in this browser.");
+      setVoiceStatus("idle");
+      resolve();
+    }, { once: true });
+
+    audio.play().catch(() => {
+      if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      appendMessage("assistant", "Alex replied in text, but the browser blocked audio playback.");
+      setVoiceStatus("idle");
+      resolve();
+    });
+  });
+}
+
+function stopActiveVoiceAudio(updateStatus = true) {
+  if (!state.activeVoiceAudio) return;
+  state.activeVoiceAudio.pause();
+  state.activeVoiceAudio.currentTime = 0;
+  state.activeVoiceAudio = null;
+  if (updateStatus) setVoiceStatus("idle");
+}
+
 function bindEvents() {
   $("#join-now").addEventListener("click", () => showScreen("welcome-screen"));
 
@@ -341,9 +603,9 @@ function bindEvents() {
 
   $("#voice-mode-toggle").addEventListener("click", () => setTalkUiMode("voice"));
 
-  $("#voice-button").addEventListener("click", () => {});
+  $("#voice-button").addEventListener("click", handleVoiceButton);
 
-  $("#finish-session").addEventListener("click", () => {});
+  $("#finish-session").addEventListener("click", handleVoiceStop);
 
   $("#chat-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -408,13 +670,7 @@ async function askAlex() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         messages: state.messages,
-        profile: state.result ? {
-          handle: state.result.handle,
-          capability: state.result.capability,
-          primary: engines[state.result.primary].name,
-          amplifier: engines[state.result.amplifier].name,
-          rawScores: state.result.raw
-        } : null,
+        profile: getProfilePayload(),
         mode: state.talkMode
       })
     });
@@ -425,8 +681,11 @@ async function askAlex() {
   } catch (error) {
     const hint = location.protocol === "file:"
       ? "Open the prototype through the local server at http://127.0.0.1:8123/index.html, not directly from the file."
-      : "Make sure server.js is running with OPENAI_API_KEY set.";
-    appendMessage("assistant", `I could not reach the model yet. ${hint}`);
+      : "Make sure server.js is running with the Gemini or Vertex configuration set.";
+    const message = error.message && error.message !== "Alex is unavailable."
+      ? error.message
+      : `I could not reach the model yet. ${hint}`;
+    appendMessage("assistant", message);
   } finally {
     state.orbMode = "rest";
     $("#orb-state").textContent = "Rest";
@@ -512,4 +771,4 @@ bindEvents();
 renderQuestion();
 renderLibrary();
 setTalkUiMode("voice");
-setOrbImages();
+setVoiceStatus("idle");

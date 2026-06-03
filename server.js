@@ -1,4 +1,5 @@
 const http = require("http");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -13,6 +14,16 @@ const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 const vertexModel = process.env.VERTEX_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const vertexLocation = process.env.GOOGLE_CLOUD_LOCATION || process.env.VERTEX_LOCATION || "global";
 const vertexProject = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
+const maxOutputTokens = Number(process.env.MAX_OUTPUT_TOKENS || 2000);
+const maxRequestBytes = Number(process.env.MAX_REQUEST_BYTES || 8_000_000);
+const speechLanguageCode = process.env.SPEECH_LANGUAGE_CODE || "en-GB";
+const speechModel = process.env.SPEECH_MODEL || "";
+const ttsLanguageCode = process.env.TTS_LANGUAGE_CODE || "en-GB";
+const ttsVoiceName = process.env.TTS_VOICE_NAME || "";
+const ttsSsmlGender = process.env.TTS_SSML_GENDER || "MALE";
+const ttsSpeakingRate = Number(process.env.TTS_SPEAKING_RATE || 1);
+const ttsPitch = Number(process.env.TTS_PITCH || 0);
+let cachedGoogleAccessToken = null;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -119,7 +130,7 @@ function readBody(req) {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 1_000_000) {
+      if (body.length > maxRequestBytes) {
         req.destroy();
         reject(new Error("Request body too large"));
       }
@@ -130,46 +141,87 @@ function readBody(req) {
 }
 
 async function handleChat(req, res) {
-  if (provider === "gemini" && !process.env.GEMINI_API_KEY) {
-    sendJson(res, 500, { error: "GEMINI_API_KEY is not set on the local server." });
-    return;
-  }
-
-  if (provider === "openai" && !process.env.OPENAI_API_KEY) {
-    sendJson(res, 500, { error: "OPENAI_API_KEY is not set on the local server." });
-    return;
-  }
-
-  if (provider === "vertex" && !vertexProject) {
-    sendJson(res, 500, { error: "GOOGLE_CLOUD_PROJECT is not set on the server." });
-    return;
-  }
-
   try {
+    validateChatProvider();
     const body = JSON.parse(await readBody(req));
-    const messages = Array.isArray(body.messages) ? body.messages.slice(-10) : [];
-    const profile = body.profile;
-    const mode = body.mode || "Conversation";
-    const profileLine = profile
-      ? `User archetype: ${profile.handle} (${profile.capability}). Primary engine: ${profile.primary}. Amplifier: ${profile.amplifier}.`
-      : "User archetype is not available yet.";
-
-    const input = messages.map((message) => ({
-      role: message.role === "assistant" ? "assistant" : "user",
-      content: String(message.content || "").slice(0, 2000)
-    }));
-
-    const systemInstructions = `${instructions}\nCurrent mode: ${mode}.\n${profileLine}`;
-    const reply = provider === "gemini"
-      ? await askGemini(input, systemInstructions)
-      : provider === "openai"
-        ? await askOpenAI(input, systemInstructions)
-        : await askVertex(input, systemInstructions);
+    const input = normalizeMessages(body.messages).slice(-10);
+    const systemInstructions = buildSystemInstructions(body.profile, body.mode);
+    const reply = await askConfiguredModel(input, systemInstructions);
 
     sendJson(res, 200, { reply });
   } catch (error) {
     sendJson(res, 500, { error: error.message });
   }
+}
+
+async function handleVoiceChat(req, res) {
+  try {
+    validateChatProvider();
+    const body = JSON.parse(await readBody(req));
+    const audioContent = String(body.audioContent || "").replace(/^data:audio\/[a-z0-9+.-]+;base64,/i, "");
+    const sampleRateHertz = Number(body.sampleRateHertz);
+    if (!audioContent) throw new Error("No voice recording was received.");
+    if (!Number.isFinite(sampleRateHertz) || sampleRateHertz <= 0) {
+      throw new Error("The voice recording sample rate was not available.");
+    }
+
+    const transcript = await transcribeSpeech(audioContent, sampleRateHertz);
+    if (!transcript) {
+      throw new Error("I could not hear enough speech to transcribe. Please try again.");
+    }
+
+    const input = normalizeMessages(body.messages)
+      .slice(-9)
+      .concat({ role: "user", content: transcript });
+    const systemInstructions = buildSystemInstructions(body.profile, body.mode);
+    const reply = await askConfiguredModel(input, systemInstructions);
+    const audio = await synthesizeSpeech(reply);
+
+    sendJson(res, 200, {
+      transcript,
+      reply,
+      audioContent: audio.audioContent,
+      audioMimeType: audio.mimeType
+    });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
+
+function validateChatProvider() {
+  if (provider === "gemini" && !process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not set on the server.");
+  }
+
+  if (provider === "openai" && !process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set on the server.");
+  }
+
+  if (provider === "vertex" && !vertexProject) {
+    throw new Error("GOOGLE_CLOUD_PROJECT is not set on the server.");
+  }
+}
+
+function normalizeMessages(messages) {
+  return (Array.isArray(messages) ? messages : []).map((message) => ({
+    role: message.role === "assistant" ? "assistant" : "user",
+    content: String(message.content || "").slice(0, 2000)
+  }));
+}
+
+function buildSystemInstructions(profile, mode = "Conversation") {
+  const profileLine = profile
+    ? `User archetype: ${profile.handle} (${profile.capability}). Primary engine: ${profile.primary}. Amplifier: ${profile.amplifier}.`
+    : "User archetype is not available yet.";
+  return `${instructions}\nCurrent mode: ${mode}.\n${profileLine}`;
+}
+
+async function askConfiguredModel(input, systemInstructions) {
+  return provider === "gemini"
+    ? askGemini(input, systemInstructions)
+    : provider === "openai"
+      ? askOpenAI(input, systemInstructions)
+      : askVertex(input, systemInstructions);
 }
 
 async function askVertex(input, systemInstructions) {
@@ -195,7 +247,7 @@ async function askVertex(input, systemInstructions) {
       },
       contents,
       generationConfig: {
-        maxOutputTokens: 220,
+        maxOutputTokens,
         temperature: 0.7
       }
     })
@@ -212,6 +264,15 @@ async function askVertex(input, systemInstructions) {
 async function getGoogleAccessToken() {
   if (process.env.GOOGLE_OAUTH_ACCESS_TOKEN) {
     return process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
+  }
+
+  if (cachedGoogleAccessToken && cachedGoogleAccessToken.expiresAt > Date.now() + 60_000) {
+    return cachedGoogleAccessToken.token;
+  }
+
+  const serviceAccount = loadGoogleServiceAccount();
+  if (serviceAccount) {
+    return mintServiceAccountToken(serviceAccount);
   }
 
   const metadataResponse = await fetch(
@@ -231,6 +292,144 @@ async function getGoogleAccessToken() {
   return token.access_token;
 }
 
+function loadGoogleServiceAccount() {
+  const rawJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (rawJson) {
+    const json = rawJson.trim().startsWith("{")
+      ? rawJson
+      : Buffer.from(rawJson, "base64").toString("utf8");
+    return JSON.parse(json);
+  }
+
+  const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (credentialsPath && fs.existsSync(credentialsPath)) {
+    return JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
+  }
+
+  return null;
+}
+
+async function mintServiceAccountToken(serviceAccount) {
+  if (!serviceAccount.client_email || !serviceAccount.private_key) {
+    throw new Error("Google service account credentials are missing a client_email or private_key.");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const payload = base64Url(JSON.stringify({
+    iss: serviceAccount.client_email,
+    scope: "https://www.googleapis.com/auth/cloud-platform",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now
+  }));
+  const unsignedJwt = `${header}.${payload}`;
+  const signature = crypto
+    .createSign("RSA-SHA256")
+    .update(unsignedJwt)
+    .sign(serviceAccount.private_key, "base64url");
+
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: `${unsignedJwt}.${signature}`
+    })
+  });
+
+  const token = await tokenResponse.json();
+  if (!tokenResponse.ok || !token.access_token) {
+    throw new Error(token.error_description || token.error || "Could not mint a Google access token.");
+  }
+
+  cachedGoogleAccessToken = {
+    token: token.access_token,
+    expiresAt: Date.now() + Number(token.expires_in || 3600) * 1000
+  };
+  return cachedGoogleAccessToken.token;
+}
+
+function base64Url(value) {
+  return Buffer.from(value).toString("base64url");
+}
+
+async function transcribeSpeech(audioContent, sampleRateHertz) {
+  const accessToken = await getGoogleAccessToken();
+  const config = {
+    encoding: "LINEAR16",
+    sampleRateHertz: Math.round(sampleRateHertz),
+    languageCode: speechLanguageCode,
+    enableAutomaticPunctuation: true
+  };
+  if (speechModel) config.model = speechModel;
+
+  const speechResponse = await fetch("https://speech.googleapis.com/v1/speech:recognize", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      config,
+      audio: { content: audioContent }
+    })
+  });
+
+  const data = await speechResponse.json();
+  if (!speechResponse.ok) {
+    throw new Error(data.error?.message || "Google Speech-to-Text request failed.");
+  }
+
+  return data.results
+    ?.map((result) => result.alternatives?.[0]?.transcript || "")
+    ?.join(" ")
+    ?.trim() || "";
+}
+
+async function synthesizeSpeech(text) {
+  const accessToken = await getGoogleAccessToken();
+  const voice = { languageCode: ttsLanguageCode };
+  if (ttsVoiceName) voice.name = ttsVoiceName;
+  else voice.ssmlGender = ttsSsmlGender;
+
+  const ttsResponse = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      input: { text: limitUtf8Bytes(text, 3900) },
+      voice,
+      audioConfig: {
+        audioEncoding: "MP3",
+        speakingRate: ttsSpeakingRate,
+        pitch: ttsPitch
+      }
+    })
+  });
+
+  const data = await ttsResponse.json();
+  if (!ttsResponse.ok || !data.audioContent) {
+    throw new Error(data.error?.message || "Google Text-to-Speech request failed.");
+  }
+
+  return { audioContent: data.audioContent, mimeType: "audio/mpeg" };
+}
+
+function limitUtf8Bytes(text, maxBytes) {
+  let output = "";
+  let bytes = 0;
+  for (const character of String(text || "")) {
+    const characterBytes = Buffer.byteLength(character);
+    if (bytes + characterBytes > maxBytes) break;
+    output += character;
+    bytes += characterBytes;
+  }
+  return output;
+}
+
 async function askOpenAI(input, systemInstructions) {
   const openaiResponse = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -242,13 +441,18 @@ async function askOpenAI(input, systemInstructions) {
       model: openaiModel,
       instructions: systemInstructions,
       input,
-      max_output_tokens: 220
+      max_output_tokens: maxOutputTokens
     })
   });
 
   const data = await openaiResponse.json();
   if (!openaiResponse.ok) {
     throw new Error(data.error?.message || "OpenAI request failed.");
+  }
+
+  if (data.status === "incomplete") {
+    const reason = data.incomplete_details?.reason || "unknown";
+    throw new Error(`Alex's reply was cut off before it finished. Please try again. Reason: ${reason}.`);
   }
 
   return data.output_text || extractOpenAIText(data) || "I’m here. What feels like the next useful thing to look at?";
@@ -270,7 +474,7 @@ async function askGemini(input, systemInstructions) {
       },
       contents,
       generationConfig: {
-        maxOutputTokens: 220,
+        maxOutputTokens,
         temperature: 0.7
       }
     })
@@ -285,15 +489,19 @@ async function askGemini(input, systemInstructions) {
 }
 
 function extractGeminiText(data) {
+  const finishReason = data.candidates?.[0]?.finishReason;
   const reply = data.candidates?.[0]?.content?.parts
     ?.map((part) => part.text || "")
     ?.join("")
     ?.trim();
 
+  if (finishReason === "MAX_TOKENS") {
+    throw new Error("Alex's reply was cut off before it finished. Please try again.");
+  }
+
   if (!reply) {
-    const reason = data.candidates?.[0]?.finishReason;
-    if (reason) {
-      throw new Error(`Gemini returned no text. Finish reason: ${reason}.`);
+    if (finishReason) {
+      throw new Error(`Gemini returned no text. Finish reason: ${finishReason}.`);
     }
     return "I’m here. What feels like the next useful thing to look at?";
   }
@@ -318,6 +526,11 @@ function sendJson(res, status, payload) {
 const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/api/chat") {
     await handleChat(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/api/voice-chat") {
+    await handleVoiceChat(req, res);
     return;
   }
 

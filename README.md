@@ -13,6 +13,22 @@ GOOGLE_CLOUD_LOCATION=global
 VERTEX_MODEL=gemini-2.5-flash
 ```
 
+For voice chat, the same Google Cloud project also needs Speech-to-Text and
+Text-to-Speech enabled. If the app is not running on Google Cloud, add a service
+account JSON secret:
+
+```bash
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+```
+
+Optional voice settings:
+
+```bash
+SPEECH_LANGUAGE_CODE=en-GB
+TTS_LANGUAGE_CODE=en-GB
+TTS_SSML_GENDER=MALE
+```
+
 Start the server:
 
 ```bash
