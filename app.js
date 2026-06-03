@@ -387,7 +387,16 @@ function advanceReveal() {
     state.reveal += 1;
     renderReveal();
   } else {
-    showScreen("download-screen");
+    showScreen("download-bridge-screen");
+  }
+}
+
+function goToPreviousReveal() {
+  if (state.reveal > 0) {
+    state.reveal -= 1;
+    renderReveal();
+  } else {
+    showScreen("quiz-screen");
   }
 }
 
@@ -456,7 +465,7 @@ function setTalkContext(text) {
 function setOrbImages() {
   const src = orbAssets[state.result?.handle] || orbAssets["The Launcher"];
   $("#reveal-stage")?.style.setProperty("--summary-orb", `url("${src}")`);
-  ["#welcome-orb", "#reveal-orb", "#talk-orb", "#cta-orb"].forEach((selector) => {
+  ["#welcome-orb", "#reveal-orb", "#download-orb", "#talk-orb", "#cta-orb"].forEach((selector) => {
     const image = $(selector);
     if (image) image.src = src;
   });
@@ -735,13 +744,16 @@ function bindEvents() {
   $("#quiz-close").addEventListener("click", () => showScreen("welcome-screen"));
 
   $("#next-reveal").addEventListener("click", advanceReveal);
+  $("#reveal-back").addEventListener("click", goToPreviousReveal);
 
   $("#reveal-screen").addEventListener("click", (event) => {
-    if (event.target.closest("#next-reveal")) return;
+    if (event.target.closest("#next-reveal, #reveal-back")) return;
     if (state.reveal > 0 && state.reveal < makeRevealCards().length - 1) {
       advanceReveal();
     }
   });
+
+  $("#preview-download").addEventListener("click", () => showScreen("download-screen"));
 
   $("#start-app").addEventListener("click", () => {
     setTalkUiMode("voice");
