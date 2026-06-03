@@ -14,29 +14,19 @@
           <span class="status-icons">5G 100%</span>
         </div>
 
-        <section class="screen active" id="welcome-screen">
-          <div class="brand-row">
-            <span class="alex-mark"></span>
-            <span>Different Thinking</span>
-          </div>
-          <div class="welcome-orb">
-            <img class="orb-image rest" id="welcome-orb" alt="Alex Living Orb" />
-          </div>
-          <div class="welcome-copy">
-            <p class="eyebrow">Ask Alex</p>
-            <h1>Discover your <span class="nowrap">Unique Ability.</span></h1>
-            <p>
-              Twelve quick pairwise choices. No wrong answers. Alex uses the result to
-              coach around how your mind naturally creates value.
-            </p>
-          </div>
-          <div class="invite-card">
-            <label for="invite-code">Private beta invite</label>
-            <div class="invite-input">
-              <input id="invite-code" value="ALEX-BETA-01" />
-              <button id="start-quiz">Start</button>
-            </div>
-          </div>
+        <section class="screen active" id="intro-screen">
+          <img class="intro-artwork" src="assets/intro-screen.jpg" alt="" />
+          <div class="intro-login-mask" aria-hidden="true"></div>
+          <button class="intro-join-button" id="join-now" type="button" aria-label="Join now">
+            <span class="sr-only">Join now</span>
+          </button>
+        </section>
+
+        <section class="screen" id="welcome-screen">
+          <img class="welcome-artwork" src="assets/welcome-screen.png" alt="" />
+          <button class="welcome-start-button" id="start-quiz" type="button" aria-label="Start">
+            <span class="sr-only">Start</span>
+          </button>
         </section>
 
         <section class="screen" id="quiz-screen">
@@ -109,32 +99,46 @@
         </section>
 
         <section class="screen app-screen" id="app-screen">
-          <div class="app-view active" id="talk-view">
-            <div class="topbar">
+          <div class="app-view talk-view active" id="talk-view">
+            <div class="coach-topbar">
               <div>
                 <h2><span>Your Coach</span>Alex</h2>
               </div>
-              <span class="alex-mark"></span>
+              <span class="alex-mark coach-mark"></span>
             </div>
-            <div class="orb-panel">
-              <img class="orb-image rest" id="talk-orb" alt="Alex Living Orb" />
-              <div class="orb-state" id="orb-state">Rest</div>
+
+            <div class="talk-mode voice-talk-mode active" id="voice-talk-mode" data-talk-mode="voice" aria-label="Voice chat mode">
+              <div class="orb-panel voice-orb-panel">
+                <img class="orb-image rest" id="talk-orb" alt="Alex Living Orb" />
+                <div class="sr-only" id="orb-state">Rest</div>
+              </div>
+              <div class="talk-actions">
+                <button class="voice-button" id="voice-button" type="button" aria-label="Voice chat placeholder">
+                  <span></span>
+                </button>
+                <button class="text-mode-button" id="mode-toggle" type="button" aria-label="Switch to text chat">
+                  <span></span>
+                </button>
+                <button class="stop-button" id="finish-session" type="button" aria-label="Stop voice placeholder">
+                  <span></span>
+                </button>
+              </div>
             </div>
-            <div class="talk-actions">
-              <button class="voice-button" id="voice-button" aria-label="Start voice session">
-                <span></span>
-              </button>
-              <button class="text-mode-button" id="mode-toggle" aria-label="Switch mode">≡</button>
-              <button class="stop-button" id="finish-session" aria-label="Finish session">■</button>
+
+            <div class="talk-mode text-talk-mode" id="text-talk-mode" data-talk-mode="text" aria-label="Text chat mode">
+              <div class="transcript" id="transcript">
+                <div class="bubble alex">I’m Alex. Tell me what you want to work through, or brain dump what is in your head.</div>
+              </div>
+              <form class="chat-composer" id="chat-form">
+                <button class="composer-voice-button" id="voice-mode-toggle" type="button" aria-label="Switch to voice chat">
+                  <span></span>
+                </button>
+                <input id="chat-input" autocomplete="off" placeholder="Type your message..." />
+                <button class="composer-send-button" id="chat-send" type="submit">
+                  <span class="sr-only">Send</span>
+                </button>
+              </form>
             </div>
-            <div class="transcript" id="transcript">
-              <div class="bubble alex">I’m Alex. Tell me what you want to work through, or brain dump what is in your head.</div>
-            </div>
-            <form class="chat-composer" id="chat-form">
-              <input id="chat-input" autocomplete="off" placeholder="Message Alex..." />
-              <button id="chat-send" type="submit">Send</button>
-            </form>
-            <div class="mode-label" id="mode-label">Conversation Coaching</div>
           </div>
 
           <div class="app-view" id="library-view">
