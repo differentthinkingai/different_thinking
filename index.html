@@ -30,43 +30,52 @@
         </section>
 
         <section class="screen" id="quiz-screen">
-          <div class="topbar">
-            <button class="icon-button" data-back="welcome-screen" aria-label="Back">‹</button>
-            <div>
-              <p class="eyebrow">Unique Ability Quiz</p>
-              <h2>Most like me</h2>
+          <div class="quiz-nav">
+            <button class="quiz-icon-button quiz-back" id="quiz-back" type="button" aria-label="Back"></button>
+            <div class="quiz-dots" id="quiz-dots" aria-label="Question progress"></div>
+            <button class="quiz-icon-button quiz-close" id="quiz-close" type="button" aria-label="Close quiz"></button>
+          </div>
+          <div class="quiz-main">
+            <div class="question-glyph" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span>
             </div>
-            <span id="quiz-count">1/12</span>
+            <h2 class="quiz-title">Most like me</h2>
+            <div class="question-card">
+              <button class="choice" data-choice="A">
+                <strong id="choice-a"></strong>
+              </button>
+              <div class="or">Or</div>
+              <button class="choice" data-choice="B">
+                <strong id="choice-b"></strong>
+              </button>
+            </div>
           </div>
-          <div class="progress">
-            <span id="quiz-progress"></span>
-          </div>
-          <div class="question-card">
-            <button class="choice" data-choice="A">
-              <span>A</span>
-              <strong id="choice-a"></strong>
-            </button>
-            <div class="or">or</div>
-            <button class="choice" data-choice="B">
-              <span>B</span>
-              <strong id="choice-b"></strong>
-            </button>
-          </div>
-          <p class="helper-text">Pick the sentence that feels closer today. The scoring compares engines head-to-head.</p>
+          <button class="quiz-next" id="quiz-next" type="button">Next</button>
         </section>
 
         <section class="screen reveal-screen" id="reveal-screen">
           <div class="reveal-stage" id="reveal-stage">
-            <img class="orb-image speaking" id="reveal-orb" alt="Your archetype Living Orb" />
-            <p class="eyebrow" id="reveal-kicker"></p>
-            <h2 id="reveal-title"></h2>
-            <p id="reveal-body"></p>
-            <div class="engine-bars" id="engine-bars"></div>
-          </div>
-          <div class="reveal-controls">
-            <button class="ghost-button" id="prev-reveal">Back</button>
-            <div class="dots" id="reveal-dots"></div>
-            <button id="next-reveal">Next</button>
+            <div class="reveal-progress" id="reveal-progress" aria-label="Reveal progress"></div>
+            <div class="reveal-orb-field" aria-hidden="true">
+              <img class="reveal-art orb-one" id="reveal-orb" alt="" />
+              <img class="reveal-art orb-two" alt="" />
+              <img class="reveal-art orb-three" alt="" />
+              <img class="reveal-art orb-four" alt="" />
+            </div>
+            <div class="reveal-panel" id="reveal-panel">
+              <p class="reveal-badge" id="reveal-kicker"></p>
+              <h2 id="reveal-title"></h2>
+              <p id="reveal-body"></p>
+              <div class="engine-bars" id="engine-bars"></div>
+              <div class="reveal-tags" id="reveal-tags"></div>
+              <button class="reveal-primary" id="next-reveal" type="button">
+                <span id="reveal-action-text">Discover yourself</span>
+                <span class="alex-dot-mark" aria-hidden="true"></span>
+                <span class="share-mark" aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
         </section>
 
