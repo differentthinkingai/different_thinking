@@ -24,6 +24,7 @@
 
         <section class="screen" id="welcome-screen">
           <img class="welcome-artwork" src="assets/welcome-screen.png" alt="" />
+          <button class="icon-button welcome-back-button" data-back="intro-screen" type="button" aria-label="Back">‹</button>
           <button class="welcome-start-button" id="start-quiz" type="button" aria-label="Start">
             <span class="sr-only">Start</span>
           </button>
@@ -56,6 +57,7 @@
         </section>
 
         <section class="screen reveal-screen" id="reveal-screen">
+          <button class="icon-button reveal-back-button" id="reveal-back" type="button" aria-label="Back">‹</button>
           <div class="reveal-stage" id="reveal-stage">
             <div class="reveal-progress" id="reveal-progress" aria-label="Reveal progress"></div>
             <div class="reveal-orb-field" aria-hidden="true">
@@ -79,37 +81,103 @@
           </div>
         </section>
 
+        <section class="screen download-bridge-screen" id="download-bridge-screen">
+          <div class="download-bridge-top">
+            <button class="icon-button" data-back="reveal-screen" aria-label="Back">‹</button>
+            <span class="alex-mark" aria-hidden="true"></span>
+          </div>
+          <div class="download-bridge-copy">
+            <h2><span>Your unique ability</span>is set.</h2>
+          </div>
+          <div class="download-orb" aria-hidden="true">
+            <img class="orb-image rest" id="download-orb" alt="" />
+          </div>
+          <div class="download-bridge-bottom">
+            <p>Now Alex can go deeper: from the strengths you lead with to what your real life actually looks like.</p>
+            <button class="download-primary" id="preview-download" type="button">
+              <span>Preview Deep Download</span>
+              <span class="alex-dot-mark" aria-hidden="true"></span>
+            </button>
+          </div>
+        </section>
+
         <section class="screen" id="download-screen">
           <div class="topbar">
-            <button class="icon-button" data-back="reveal-screen" aria-label="Back">‹</button>
-            <div>
-              <p class="eyebrow">Deep Download</p>
-              <h2>Build coaching around real life.</h2>
+            <button class="icon-button" data-back="download-bridge-screen" aria-label="Back">‹</button>
+            <div class="download-heading">
+              <p class="eyebrow">Coming soon</p>
+              <h2>Deep Download</h2>
             </div>
           </div>
-          <div class="download-card">
-            <p>
-              You have your Unique Ability set. Deep Download adds the terrain:
-              your week, energy rhythm, support system, reset strategies, and how
-              direct you want Alex to be.
-            </p>
-            <div class="download-list">
-              <span>North star</span>
-              <span>First focus goal</span>
-              <span>Energy rhythm</span>
-              <span>Breakdown stage</span>
-              <span>Environment</span>
-              <span>Support system</span>
-              <span>Reset strategies</span>
-              <span>Coaching style</span>
-            </div>
+          <p class="download-intro">
+            The full version will be 8 quick voice questions that help Alex coach around your actual terrain, not just your archetype.
+          </p>
+          <div class="download-preview-list">
+            <article>
+              <span>01</span>
+              <div>
+                <h3>North star</h3>
+                <p>What you want next, and why it matters.</p>
+              </div>
+            </article>
+            <article>
+              <span>02</span>
+              <div>
+                <h3>First focus goal</h3>
+                <p>A small target to start this week.</p>
+              </div>
+            </article>
+            <article>
+              <span>03</span>
+              <div>
+                <h3>Real week</h3>
+                <p>Commitments, energy rhythm, and best windows.</p>
+              </div>
+            </article>
+            <article>
+              <span>04</span>
+              <div>
+                <h3>Breakdown stage</h3>
+                <p>Where things slip, and what triggers it.</p>
+              </div>
+            </article>
+            <article>
+              <span>05</span>
+              <div>
+                <h3>Environment</h3>
+                <p>Places, tools, sound, and people that help.</p>
+              </div>
+            </article>
+            <article>
+              <span>06</span>
+              <div>
+                <h3>Support system</h3>
+                <p>Who helps, and what support works.</p>
+              </div>
+            </article>
+            <article>
+              <span>07</span>
+              <div>
+                <h3>Reset strategies</h3>
+                <p>What brings you back.</p>
+              </div>
+            </article>
+            <article>
+              <span>08</span>
+              <div>
+                <h3>Coaching style</h3>
+                <p>How Alex should coach.</p>
+              </div>
+            </article>
           </div>
-          <button class="full-button" id="start-app">Talk to Alex</button>
+          <p class="download-note">Start now. Alex will learn this context as you talk.</p>
+          <button class="full-button" id="start-app">Continue to Alex</button>
         </section>
 
         <section class="screen app-screen" id="app-screen">
           <div class="app-view talk-view active" id="talk-view">
             <div class="coach-topbar">
+              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back">‹</button>
               <div>
                 <h2><span>Your Coach</span>Alex</h2>
               </div>
@@ -152,6 +220,7 @@
 
           <div class="app-view" id="library-view">
             <div class="topbar">
+              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back">‹</button>
               <div>
                 <h2><span>Your Curated</span>Feed</h2>
               </div>
