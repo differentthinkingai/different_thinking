@@ -35,6 +35,109 @@ const orbAssets = {
   "The Igniter": "12orbpng/The Igniter Orb.png"
 };
 
+const engineReveal = {
+  PS: {
+    title: "Pattern synthesis",
+    landscapeLabel: "Non-Linear Problem Solving",
+    core: "You see the <strong>pattern</strong> before everyone has named the pieces. Your strength is finding the <strong>shape</strong> inside complexity.",
+    compass: "You trust the hidden <strong>structure</strong>. When life feels noisy, the pattern tells you where to <strong>move</strong>."
+  },
+  MI: {
+    title: "Motivated immersion",
+    landscapeLabel: "Interest-Driven Focus",
+    core: "You go <strong>deep</strong> when something matters. Focus arrives when interest gives your mind somewhere to <strong>land</strong>.",
+    compass: "Depth is your <strong>compass</strong>. You move best when the work becomes rich enough to hold your <strong>attention</strong>."
+  },
+  RA: {
+    title: "Rapid activation",
+    landscapeLabel: "Quick-Start Energy",
+    core: "That's not <strong>impatience</strong>. That's how you're built. You bypass friction by <strong>starting</strong> before the <strong>doubt</strong> kicks in.",
+    compass: "Motion is your <strong>compass</strong>. A first step helps your system turn uncertainty into <strong>information</strong>."
+  },
+  ER: {
+    title: "Emotional resonance",
+    landscapeLabel: "Intuitive Connection",
+    core: "You feel what <strong>matters</strong> before it has language. Meaning gives your energy <strong>direction</strong> and weight.",
+    compass: "You don't move for efficiency alone. You move when the work carries <strong>meaning</strong>, care, and real <strong>stakes</strong>."
+  }
+};
+
+const revealProfiles = {
+  "The Weaver": {
+    tagline: "You <strong>weave</strong> complex ideas into patterns other people can finally <strong>see</strong>.",
+    ability: "When your <strong>pattern-sense</strong> meets your depth, you become a weaver of complexity. You don't just collect ideas you <strong>connect</strong> them.",
+    potentialTitle: "Your depth is an asset",
+    potential: "<strong>Complexity</strong> gives you energy. This can sometimes mean simple next steps feel too blunt to <strong>trust</strong>."
+  },
+  "The Spark": {
+    tagline: "You spot connections quickly and create <strong>clarity</strong> through immediate <strong>movement</strong>.",
+    ability: "When your <strong>pattern-sense</strong> meets your quick start, you become a spark for clarity. You don't just see the route you <strong>test</strong> it.",
+    potentialTitle: "Your speed is an asset",
+    potential: "<strong>Clarity</strong> matters to you. This can sometimes mean your energy drops when a task has no shape to <strong>react</strong> to."
+  },
+  "The Mapper": {
+    tagline: "You connect values with systems and find the <strong>path</strong> through <strong>complexity</strong>.",
+    ability: "When your <strong>systems mind</strong> meets your care, you become a mapmaker for meaning. You don't just see the problem you find the <strong>path</strong>.",
+    potentialTitle: "Your meaning is an asset",
+    potential: "You see what sits <strong>underneath</strong>. This can sometimes mean you wait for the whole map before taking the next <strong>step</strong>."
+  },
+  "The Builder": {
+    tagline: "You turn deep focus into <strong>models</strong>, craft, and durable <strong>expertise</strong>.",
+    ability: "When your <strong>depth</strong> meets your pattern-sense, you become a builder of insight. You don't just learn it you <strong>shape</strong> it.",
+    potentialTitle: "Your focus is an asset",
+    potential: "<strong>Depth</strong> helps you build real mastery. This can sometimes mean starting feels hard until the model feels <strong>complete</strong>."
+  },
+  "The Accelerator": {
+    tagline: "You turn interest into <strong>skill</strong> through fast, hands-on <strong>momentum</strong>.",
+    ability: "When your <strong>focus</strong> meets your momentum, you become an accelerator for skill. You don't just practice it you make it <strong>move</strong>.",
+    potentialTitle: "Your momentum is an asset",
+    potential: "<strong>Immersion</strong> turns quickly into skill for you. This can sometimes mean you outpace the support that keeps progress <strong>steady</strong>."
+  },
+  "The Guide": {
+    tagline: "You create calm expertise rooted in <strong>care</strong>, depth, and <strong>trust</strong>.",
+    ability: "When your <strong>depth</strong> meets your care, you become a guide people can trust. You don't just know the answer you hold the <strong>person</strong>.",
+    potentialTitle: "Your care is an asset",
+    potential: "<strong>Quality</strong> and people both matter to you. This can sometimes mean your energy fades when the work loses depth or <strong>trust</strong>."
+  },
+  "The Activator": {
+    tagline: "You move first, test fast, and turn <strong>uncertainty</strong> into <strong>momentum</strong>.",
+    ability: "When your <strong>momentum</strong> meets your pattern-sense, you become an activator of smart action. You don't just plan the move you make it <strong>real</strong>.",
+    potentialTitle: "Your movement is an asset",
+    potential: "<strong>Action</strong> helps you think clearly. This can sometimes mean you move before everyone else has caught <strong>up</strong>."
+  },
+  "The Focuser": {
+    tagline: "You turn quick energy into <strong>focused</strong>, high-output <strong>sprints</strong>.",
+    ability: "When your <strong>momentum</strong> meets your depth, you become a focuser of energy. You don't just start fast you stay with what <strong>matters</strong>.",
+    potentialTitle: "Your sprint is an asset",
+    potential: "<strong>Momentum</strong> becomes powerful when it has a focus. This can sometimes mean loose priorities scatter your <strong>energy</strong>."
+  },
+  "The Launcher": {
+    tagline: "You <strong>rally</strong> the world toward a cause with infectious <strong>speed</strong>.",
+    compass: "You don't move fast for <strong>efficiency</strong>; you move fast because you <strong>care</strong>. <strong>Meaning</strong> is the fuel for your speed.",
+    ability: "When your <strong>drive</strong> meets your heart, you become an <strong>engine</strong> for change. You don't just dream it you <strong>build</strong> it.",
+    potentialTitle: "Your momentum is an asset",
+    potential: "<strong>Meaning</strong> is not optional for you. This can sometimes mean your energy <strong>evaporates</strong> when a project feels <strong>hollow</strong>."
+  },
+  "The Visionary": {
+    tagline: "You turn deeply held values into <strong>maps</strong> for meaningful <strong>change</strong>.",
+    ability: "When your <strong>heart</strong> meets your systems mind, you become a visionary for change. You don't just feel what matters you give it <strong>shape</strong>.",
+    potentialTitle: "Your vision is an asset",
+    potential: "<strong>Meaning</strong> arrives quickly for you. This can sometimes mean ordinary steps feel too small for what you can <strong>see</strong>."
+  },
+  "The Mentor": {
+    tagline: "You make support sustainable through <strong>care</strong>, focus, and practical <strong>wisdom</strong>.",
+    ability: "When your <strong>care</strong> meets your depth, you become a mentor people can lean on. You don't just support them you make support <strong>sustainable</strong>.",
+    potentialTitle: "Your steadiness is an asset",
+    potential: "People trust your <strong>care</strong> and wisdom. This can sometimes mean you carry too much before naming what you <strong>need</strong>."
+  },
+  "The Igniter": {
+    tagline: "You turn meaning into the first <strong>brave</strong> step.",
+    ability: "When your <strong>meaning</strong> meets your momentum, you become an igniter of first steps. You don't just care deeply you <strong>move</strong>.",
+    potentialTitle: "Your spark is an asset",
+    potential: "<strong>Meaning</strong> pulls you into motion. This can sometimes mean urgency rises before the plan has enough <strong>shape</strong>."
+  }
+};
+
 const questions = [
   ["PS", "MI", "I connect ideas from different places until a new pattern becomes obvious.", "I go deep when something matters and stay with it until it opens up."],
   ["PS", "RA", "I like understanding the shape of a problem before choosing the next move.", "I like to try a small first step right away so I can learn fast."],
@@ -134,6 +237,8 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 function showScreen(id) {
   $$(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === id));
+  $(".phone")?.classList.toggle("quiz-active", id === "quiz-screen");
+  $(".phone")?.classList.toggle("reveal-active", id === "reveal-screen");
   state.screen = id;
 }
 
@@ -189,48 +294,101 @@ function scoreQuiz() {
 }
 
 function renderQuestion() {
-  const [engineA, engineB, copyA, copyB] = questions[state.q];
-  $("#quiz-count").textContent = `${state.q + 1}/12`;
-  $("#quiz-progress").style.width = `${((state.q + 1) / questions.length) * 100}%`;
+  const [, , copyA, copyB] = questions[state.q];
   $("#choice-a").textContent = copyA;
   $("#choice-b").textContent = copyB;
-  $(".choice[data-choice='A'] span").style.color = engines[engineA].color;
-  $(".choice[data-choice='B'] span").style.color = engines[engineB].color;
+  $("#quiz-dots").innerHTML = questions.map((_, index) => `<span class="${index <= state.q ? "filled" : ""}"></span>`).join("");
+  $$(".choice").forEach((button) => {
+    button.classList.toggle("is-selected", state.answers[state.q] === button.dataset.choice);
+  });
+}
+
+function goToNextQuestion() {
+  if (!state.answers[state.q]) return;
+  if (state.q < questions.length - 1) {
+    state.q += 1;
+    renderQuestion();
+  } else {
+    state.result = scoreQuiz();
+    state.reveal = 0;
+    renderReveal();
+    showScreen("reveal-screen");
+  }
+}
+
+function goToPreviousQuestion() {
+  if (state.q > 0) {
+    state.q -= 1;
+    renderQuestion();
+  } else {
+    showScreen("welcome-screen");
+  }
 }
 
 function makeRevealCards() {
   const result = state.result;
-  const primary = engines[result.primary];
-  const amplifier = engines[result.amplifier];
+  const profile = revealProfiles[result.handle];
+  const primary = engineReveal[result.primary];
+  const amplifier = engineReveal[result.amplifier];
+  const compass = profile.compass || amplifier.compass;
   return [
-    ["Your Archetype", result.handle, `${result.capability}. ${result.description}`],
-    ["Your Core Engine", primary.name, primary.name === "Rapid Activation" ? "That is not impatience. That is how you are built. You bypass friction by starting before doubt kicks in." : `You lead with ${primary.label.toLowerCase()}. Alex starts from that strength, not from a deficit story.`],
-    ["Your Internal Compass", amplifier.name, amplifier.name === "Emotional Resonance" ? "You do not move for efficiency alone. Meaning is the fuel that gives your momentum direction." : `Your ${amplifier.label.toLowerCase()} shapes how your core engine becomes useful in real life.`],
-    ["Your Unique Ability", "The Rare Mix", `When ${primary.name.toLowerCase()} meets ${amplifier.name.toLowerCase()}, you become ${result.capability.toLowerCase()}.`],
-    ["Your Cognitive Landscape", "How your energy flows", "This is not a scorecard. It is the topography Alex uses to personalise coaching."],
-    ["Untapped Potential", "The shadow of the strength", "Your strongest engine can overrun the room when conditions are wrong. Alex helps you notice that early without turning it into shame."],
-    ["Your Archetype", result.handle, "Screenshot this one. Your first session starts from here."]
+    { layout: "archetype", kicker: "Your Archetype", title: displayArchetypeName(result.handle), body: profile.tagline, action: "Discover yourself" },
+    { layout: "core", kicker: "Your Core Engine", title: primary.title, body: primary.core },
+    { layout: "compass", kicker: "Your Internal Compass", title: amplifier.title, body: compass },
+    { layout: "ability", kicker: "The Rare Mix", title: "Your unique ability", body: profile.ability },
+    { layout: "landscape", kicker: "The Rare Mix", title: "Your cognitive landscape", body: "" },
+    { layout: "potential", kicker: "Untapped Potential", title: profile.potentialTitle, body: profile.potential },
+    { layout: "summary", kicker: "", title: displayArchetypeName(result.handle), body: profile.tagline, action: "Share your uniqueness" }
   ];
 }
 
 function renderReveal() {
   const cards = makeRevealCards();
-  const [kicker, title, body] = cards[state.reveal];
-  $("#reveal-kicker").textContent = kicker;
-  $("#reveal-title").textContent = title;
-  $("#reveal-body").textContent = body;
-  $("#prev-reveal").disabled = state.reveal === 0;
-  $("#next-reveal").textContent = state.reveal === cards.length - 1 ? "Continue" : "Next";
-  $("#reveal-dots").innerHTML = cards.map((_, i) => `<span class="${i === state.reveal ? "active" : ""}"></span>`).join("");
-
-  const showBars = state.reveal === 4 || state.reveal === 6;
-  $("#reveal-stage").classList.toggle("with-bars", showBars);
-  $("#engine-bars").style.display = showBars ? "grid" : "none";
-  $("#engine-bars").innerHTML = Object.keys(engines).map((key) => {
-    const value = state.result.raw[key];
-    return `<div class="bar-label"><span>${engines[key].label}</span><span>${value}/6</span><div class="bar"><span style="width:${Math.max(12, value / 6 * 100)}%; background:${engines[key].color}"></span></div></div>`;
-  }).join("");
+  const card = cards[state.reveal];
+  const stage = $("#reveal-stage");
+  stage.className = `reveal-stage reveal-layout-${card.layout}`;
+  $("#reveal-progress").innerHTML = cards.map((_, i) => `<span class="${i <= state.reveal ? "filled" : ""}"></span>`).join("");
+  $("#reveal-progress").style.display = card.layout === "archetype" || card.layout === "summary" ? "none" : "grid";
+  $("#reveal-kicker").textContent = card.kicker;
+  $("#reveal-title").textContent = card.title;
+  $("#reveal-body").innerHTML = card.body;
+  $("#engine-bars").style.display = card.layout === "landscape" ? "grid" : "none";
+  $("#engine-bars").innerHTML = card.layout === "landscape" ? makeLandscapeBars() : "";
+  $("#reveal-tags").style.display = card.layout === "summary" ? "flex" : "none";
+  $("#reveal-tags").innerHTML = card.layout === "summary" ? [state.result.primary, state.result.amplifier].map((key) => `<span>${engineReveal[key].landscapeLabel}</span>`).join("") : "";
+  $("#next-reveal").style.display = card.action ? "inline-flex" : "none";
+  $("#reveal-action-text").textContent = card.action || "";
+  $("#next-reveal").classList.toggle("is-share", card.layout === "summary");
+  $("#next-reveal").classList.toggle("is-discover", card.layout === "archetype");
+  $(".alex-dot-mark").style.display = card.layout === "archetype" ? "inline-block" : "none";
+  $(".share-mark").style.display = card.layout === "summary" ? "inline-block" : "none";
   setOrbImages();
+}
+
+function displayArchetypeName(handle) {
+  return handle.replace(/^The (.+)$/, (_, name) => `The ${name.toLowerCase()}`);
+}
+
+function makeLandscapeBars() {
+  const order = [
+    state.result.primary,
+    state.result.amplifier,
+    ...Object.keys(engines).filter((key) => key !== state.result.primary && key !== state.result.amplifier)
+  ];
+  return order.map((key) => {
+    const value = state.result.raw[key];
+    return `<div class="bar-label"><span>${engineReveal[key].landscapeLabel}</span><div class="bar"><span style="width:${Math.max(7, value / 6 * 100)}%"></span></div></div>`;
+  }).join("");
+}
+
+function advanceReveal() {
+  const cards = makeRevealCards();
+  if (state.reveal < cards.length - 1) {
+    state.reveal += 1;
+    renderReveal();
+  } else {
+    showScreen("download-screen");
+  }
 }
 
 function renderLibrary() {
@@ -297,9 +455,13 @@ function setTalkContext(text) {
 
 function setOrbImages() {
   const src = orbAssets[state.result?.handle] || orbAssets["The Launcher"];
+  $("#reveal-stage")?.style.setProperty("--summary-orb", `url("${src}")`);
   ["#welcome-orb", "#reveal-orb", "#talk-orb", "#cta-orb"].forEach((selector) => {
     const image = $(selector);
     if (image) image.src = src;
+  });
+  $$(".reveal-art").forEach((image) => {
+    image.src = src;
   });
   $("#talk-orb")?.classList.remove("rest", "listening", "thinking", "speaking");
   $("#talk-orb")?.classList.add(state.orbMode);
@@ -558,35 +720,27 @@ function bindEvents() {
   $("#start-quiz").addEventListener("click", () => {
     state.q = 0;
     state.answers = [];
+    state.result = null;
     renderQuestion();
     showScreen("quiz-screen");
   });
 
   $$(".choice").forEach((button) => button.addEventListener("click", () => {
     state.answers[state.q] = button.dataset.choice;
-    if (state.q < questions.length - 1) {
-      state.q += 1;
-      renderQuestion();
-    } else {
-      state.result = scoreQuiz();
-      state.reveal = 0;
-      renderReveal();
-      showScreen("reveal-screen");
-    }
+    renderQuestion();
   }));
 
-  $("#next-reveal").addEventListener("click", () => {
-    if (state.reveal < 6) {
-      state.reveal += 1;
-      renderReveal();
-    } else {
-      showScreen("download-screen");
-    }
-  });
+  $("#quiz-next").addEventListener("click", goToNextQuestion);
+  $("#quiz-back").addEventListener("click", goToPreviousQuestion);
+  $("#quiz-close").addEventListener("click", () => showScreen("welcome-screen"));
 
-  $("#prev-reveal").addEventListener("click", () => {
-    state.reveal = Math.max(0, state.reveal - 1);
-    renderReveal();
+  $("#next-reveal").addEventListener("click", advanceReveal);
+
+  $("#reveal-screen").addEventListener("click", (event) => {
+    if (event.target.closest("#next-reveal")) return;
+    if (state.reveal > 0 && state.reveal < makeRevealCards().length - 1) {
+      advanceReveal();
+    }
   });
 
   $("#start-app").addEventListener("click", () => {
