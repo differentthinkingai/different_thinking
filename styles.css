@@ -886,6 +886,22 @@ input:focus {
   45% { transform: scale(1.045); }
 }
 
+.app-screen #talk-orb.rest {
+  animation: orb-breathe 3.2s ease-in-out infinite;
+}
+
+.app-screen #talk-orb.listening {
+  animation: orb-listen 1.4s ease-in-out infinite;
+}
+
+.app-screen #talk-orb.thinking {
+  animation: orb-think 1.1s ease-in-out infinite;
+}
+
+.app-screen #talk-orb.speaking {
+  animation: orb-speak 0.8s ease-in-out infinite;
+}
+
 .text-talk-mode {
   padding: 0 24px 18px;
   overflow: hidden;
@@ -1078,6 +1094,22 @@ input:focus {
   height: 128px;
   background: var(--button);
   color: #ffffff;
+}
+
+.voice-button.is-recording {
+  background: #d85f4f;
+}
+
+.voice-button.is-speaking {
+  background: #58d7c4;
+  color: var(--button);
+}
+
+.voice-button:disabled,
+.text-mode-button:disabled,
+.stop-button:disabled {
+  cursor: default;
+  opacity: 0.42;
 }
 
 .text-mode-button {
