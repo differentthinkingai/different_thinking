@@ -106,13 +106,14 @@ const libraryCards = [
 ];
 
 const state = {
-  screen: "welcome-screen",
+  screen: "intro-screen",
   q: 0,
   answers: [],
   result: null,
   reveal: 0,
   filter: "All",
   area: "All",
+  talkUiMode: "voice",
   talkMode: "Conversation",
   orbMode: "rest",
   messages: [
@@ -129,6 +130,22 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 function showScreen(id) {
   $$(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === id));
   state.screen = id;
+}
+
+function showAppView(id) {
+  $$(".app-view").forEach((view) => view.classList.toggle("active", view.id === id));
+  $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === id));
+}
+
+function setTalkUiMode(mode) {
+  state.talkUiMode = mode;
+  $$(".talk-mode").forEach((view) => view.classList.toggle("active", view.dataset.talkMode === mode));
+  $("#talk-view")?.classList.toggle("is-text-mode", mode === "text");
+  $("#talk-view")?.classList.toggle("is-voice-mode", mode === "voice");
+  if (mode === "text") {
+    $("#transcript").scrollTop = $("#transcript").scrollHeight;
+    $("#chat-input").focus();
+  }
 }
 
 function scoreQuiz() {
@@ -192,6 +209,7 @@ function renderReveal() {
   $("#reveal-dots").innerHTML = cards.map((_, i) => `<span class="${i === state.reveal ? "active" : ""}"></span>`).join("");
 
   const showBars = state.reveal === 4 || state.reveal === 6;
+  $("#reveal-stage").classList.toggle("with-bars", showBars);
   $("#engine-bars").style.display = showBars ? "grid" : "none";
   $("#engine-bars").innerHTML = Object.keys(engines).map((key) => {
     const value = state.result.raw[key];
@@ -252,10 +270,14 @@ function addSessionCards() {
 }
 
 function setTalkContext(text) {
-  $("#card-dialog").close();
-  $$(".app-view").forEach((view) => view.classList.toggle("active", view.id === "talk-view"));
-  $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === "talk-view"));
-  $("#transcript").insertAdjacentHTML("beforeend", `<div class="bubble user">Can we talk about “${text}”?</div><div class="bubble alex">Yes. Let’s use it as context, not as a verdict. What part feels most alive right now?</div>`);
+  if ($("#card-dialog").open) $("#card-dialog").close();
+  showAppView("talk-view");
+  setTalkUiMode("text");
+  const userMessage = `Can we talk about “${text}”?`;
+  const alexMessage = "Yes. Let’s use it as context, not as a verdict. What part feels most alive right now?";
+  appendMessage("user", userMessage);
+  appendMessage("assistant", alexMessage);
+  state.messages.push({ role: "user", content: userMessage }, { role: "assistant", content: alexMessage });
 }
 
 function setOrbImages() {
@@ -269,6 +291,8 @@ function setOrbImages() {
 }
 
 function bindEvents() {
+  $("#join-now").addEventListener("click", () => showScreen("welcome-screen"));
+
   $("#start-quiz").addEventListener("click", () => {
     state.q = 0;
     state.answers = [];
@@ -303,30 +327,23 @@ function bindEvents() {
     renderReveal();
   });
 
-  $("#start-app").addEventListener("click", () => showScreen("app-screen"));
+  $("#start-app").addEventListener("click", () => {
+    setTalkUiMode("voice");
+    showAppView("talk-view");
+    showScreen("app-screen");
+  });
 
   $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
-    $$(".tab").forEach((item) => item.classList.toggle("active", item === tab));
-    $$(".app-view").forEach((view) => view.classList.toggle("active", view.id === tab.dataset.tab));
+    showAppView(tab.dataset.tab);
   }));
 
-  $("#mode-toggle").addEventListener("click", () => {
-    state.talkMode = state.talkMode === "Conversation" ? "Brain Dump" : "Conversation";
-    $("#mode-label").textContent = state.talkMode === "Conversation" ? "Conversation Coaching" : "Brain Dump / Yap";
-  });
+  $("#mode-toggle").addEventListener("click", () => setTalkUiMode("text"));
 
-  $("#voice-button").addEventListener("click", () => {
-    const next = { rest: "listening", listening: "thinking", thinking: "speaking", speaking: "rest" };
-    state.orbMode = next[state.orbMode];
-    $("#orb-state").textContent = state.orbMode[0].toUpperCase() + state.orbMode.slice(1);
-    setOrbImages();
-  });
+  $("#voice-mode-toggle").addEventListener("click", () => setTalkUiMode("voice"));
 
-  $("#finish-session").addEventListener("click", () => {
-    addSessionCards();
-    $$(".app-view").forEach((view) => view.classList.toggle("active", view.id === "library-view"));
-    $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === "library-view"));
-  });
+  $("#voice-button").addEventListener("click", () => {});
+
+  $("#finish-session").addEventListener("click", () => {});
 
   $("#chat-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -384,7 +401,7 @@ function appendMessage(role, content) {
 async function askAlex() {
   const send = $("#chat-send");
   send.disabled = true;
-  send.textContent = "...";
+  send.setAttribute("aria-label", "Sending");
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -415,7 +432,7 @@ async function askAlex() {
     $("#orb-state").textContent = "Rest";
     setOrbImages();
     send.disabled = false;
-    send.textContent = "Send";
+    send.setAttribute("aria-label", "Send");
   }
 }
 
@@ -494,4 +511,5 @@ function drawOrb(canvas, getMode, getResult) {
 bindEvents();
 renderQuestion();
 renderLibrary();
+setTalkUiMode("voice");
 setOrbImages();
