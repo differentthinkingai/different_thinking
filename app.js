@@ -159,57 +159,111 @@ const initialAlexMessage = "I’m Alex. Tell me what you want to work through, o
 const libraryCards = [
   {
     area: "Strengths & Proof",
-    type: "Strength Snapshot",
-    context: "Life",
-    date: "Jan 28",
-    title: "Calm under pressure",
-    summary: "When the plan changed, you picked a next step instead of shutting down.",
+    type: "Proof Moment",
+    context: "Work",
+    date: "Today",
+    title: "Proof: asked while it mattered",
+    summary: "You spotted risk early, asked for clarity, and kept enough room to move.",
     details: {
-      "When this shows up": "Last-minute plan changes, messy handoffs, ambiguous starts.",
-      "Why it matters": "You stabilise chaos into action.",
-      "Reuse it": "Name the next visible move before solving the whole system."
+      "What you did": "Sent the question while the task still had time to change.",
+      "What it proves": "You can protect future-you with one clear ask.",
+      "Reuse it": "Before the next messy brief, ask what would make this doable."
+    }
+  },
+  {
+    area: "Strengths & Proof",
+    type: "How I Work Best",
+    context: "Life",
+    date: "Yesterday",
+    title: "How I work: visible first step",
+    summary: "Your focus returned when the task became something you could see, not hold in memory.",
+    details: {
+      "Conditions": "One visible next move, not the whole route.",
+      "Quick setup": "Open the file, write the rough heading, stop after 90 seconds.",
+      "Why it matters": "This is an operating manual, not a pep talk."
+    }
+  },
+  {
+    area: "Reframe Notes",
+    type: "Context Shift Note",
+    context: "Work",
+    date: "Mar 1",
+    title: "Context: the task had fog",
+    summary: "The delay was information: the start was invisible, not your character.",
+    details: {
+      "Old story": "I am avoiding it again.",
+      "New story": "The first move was too abstract to grip.",
+      "Try now": "Make the next action physical enough to start."
     }
   },
   {
     area: "Reframe Notes",
     type: "Reframe Lens",
-    context: "Work",
-    date: "Feb 11",
-    title: "Data, not verdict",
-    summary: "A missed plan is signal about conditions, not a character verdict.",
+    context: "Sports",
+    date: "Feb 27",
+    title: "Context: reset after mistake",
+    summary: "The mistake was one play, not your whole identity or the next move.",
     details: {
-      "Use when": "A task slips and shame starts writing the story.",
-      "Try now": "Ask what condition was missing: time, clarity, energy, support.",
-      "New story": "The setup needed adjusting before you did."
+      "Use when": "One visible error tries to take over the rest of the session.",
+      "New story": "My system needs a reset cue, not a self-attack.",
+      "Try now": "One breath, name the next play, rejoin."
     }
   },
   {
     area: "Connection Anchors",
     type: "Reach-out Script",
     context: "Personal",
-    date: "Feb 14",
-    title: "Reach out to Maya",
-    summary: "A low-pressure note asking for a Friday portfolio check-in.",
+    date: "Feb 26",
+    title: "Reach out: Friday body double",
+    summary: "A warm message turns support from vague hope into a real 25-minute plan.",
     details: {
-      "Copyable message": "Would you be up for a 15-minute portfolio check Friday? I need a real person to help me start.",
-      "Send by": "Thursday afternoon",
-      "Why it matters": "Real-world support, not app dependency."
+      "Copyable message": "Would you be up for 25 minutes on Friday where we both open the thing we have been putting off?",
+      "Send by": "Thursday lunchtime",
+      "Real-world action": "Send it, then put the call in the calendar."
+    }
+  },
+  {
+    area: "Connection Anchors",
+    type: "Repair Script",
+    context: "Personal",
+    date: "Feb 24",
+    title: "Repair: missed the check-in",
+    summary: "A short repair note keeps one missed moment from becoming disappearance.",
+    details: {
+      "Copyable message": "I missed our check-in. I care about it, and I can do Tuesday at 4 if that still works for you.",
+      "Next step": "Send, then offer one concrete time.",
+      "Why it matters": "The app rehearses connection; the person is outside it."
+    }
+  },
+  {
+    area: "HARD Goal Companion",
+    type: "HARD Goal Overview",
+    context: "Work",
+    date: "Feb 22",
+    title: "Goal: portfolio with calm",
+    summary: "North star, emotional why, accountability, and this week's tiny step in one place.",
+    details: {
+      "North star": "Apply to roles with work I am proud to show.",
+      "HARD scaffold": "Heartfelt why, vivid finish line, Friday check-ins, right-sized stretch.",
+      "Next step": "Choose one project and write the roughest heading."
     }
   },
   {
     area: "HARD Goal Companion",
     type: "Weekly Companion",
-    context: "Work",
-    date: "Feb 17",
-    title: "Week of Feb 17",
-    summary: "Open the portfolio file, choose one project, and write the roughest possible heading.",
+    context: "Life",
+    date: "Mar 3",
+    title: "Week of Mar 3",
+    summary: "One tiny step, one likely derail, and a restart plan without streak guilt.",
     details: {
-      "This week’s focus": "Make the portfolio visible again.",
-      "Tiny step": "Create one project page title.",
-      "Restart plan": "If blocked, open Figma for 90 seconds only."
+      "This week's focus": "Make the portfolio visible again.",
+      "Tiny step": "Open the page and drop in three rough bullets.",
+      "Restart plan": "If blocked, do 90 seconds with Maya on the call."
     }
   }
 ];
+
+const topOfMindCard = libraryCards[0];
 
 const state = {
   screen: "intro-screen",
@@ -221,6 +275,7 @@ const state = {
   area: "All",
   talkUiMode: "voice",
   talkMode: "Conversation",
+  activeLibraryCard: null,
   orbMode: "rest",
   voiceStatus: "idle",
   voiceRecorder: null,
@@ -247,8 +302,10 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 function showScreen(id) {
   $$(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === id));
-  $(".phone")?.classList.toggle("quiz-active", id === "quiz-screen");
-  $(".phone")?.classList.toggle("reveal-active", id === "reveal-screen");
+  const phone = $(".phone");
+  phone?.classList.toggle("quiz-active", id === "quiz-screen");
+  phone?.classList.toggle("reveal-active", id === "reveal-screen");
+  phone?.classList.toggle("immersive-active", id === "quiz-screen" || id === "reveal-screen");
   state.screen = id;
 }
 
@@ -394,8 +451,8 @@ function renderReveal() {
   $("#next-reveal").classList.toggle("is-discover", card.layout === "archetype");
   $("#next-reveal .alex-dot-mark").style.display = card.layout === "archetype" ? "inline-block" : "none";
   $(".share-mark").style.display = card.layout === "summary" ? "inline-block" : "none";
-  $("#summary-next").style.display = card.layout === "summary" ? "inline-flex" : "none";
-  $("#reveal-continue-cue").style.display = state.reveal > 0 && state.reveal < cards.length - 1 ? "block" : "none";
+  $("#summary-next").style.display = state.reveal > 0 ? "inline-flex" : "none";
+  $("#reveal-continue-cue").style.display = "none";
   setOrbImages();
 }
 
@@ -460,8 +517,9 @@ function renderLibrary() {
   $("#filters").innerHTML = filters.map((f) => `<button class="${state.filter === f ? "active" : ""}" data-filter="${f}">${f}</button>`).join("");
   $("#areas").innerHTML = areas.map((a) => `<button class="${state.area === a ? "active" : ""}" data-area="${a}">${a}</button>`).join("");
   const cards = visibleCards();
-  const top = cards[0] || libraryCards[0];
-  $("#top-card-summary").textContent = top.summary;
+  $("#top-card-title").textContent = topOfMindCard.title;
+  $("#top-card-meta").innerHTML = [topOfMindCard.type, topOfMindCard.context, topOfMindCard.date].map((item) => `<span>${item}</span>`).join("");
+  $("#top-card-summary").textContent = topOfMindCard.summary;
   $("#card-list").innerHTML = cards.map((card, index) => `
     <article class="library-card">
       <div class="meta"><span>${card.type}</span><span>${card.context}</span><span>${card.date}</span></div>
@@ -481,11 +539,14 @@ function visibleCards() {
 
 function openCard(index) {
   const card = visibleCards()[index] || libraryCards[0];
+  const dialog = $("#card-dialog");
+  state.activeLibraryCard = card;
   $("#dialog-type").textContent = `${card.area} · ${card.type}`;
   $("#dialog-title").textContent = card.title;
   $("#dialog-summary").textContent = card.summary;
   $("#dialog-details").innerHTML = Object.entries(card.details).map(([key, value]) => `<div><strong>${key}</strong>${value}</div>`).join("");
-  $("#card-dialog").showModal();
+  dialog.hidden = false;
+  $("#close-dialog").focus();
 }
 
 function addSessionCards() {
@@ -494,25 +555,61 @@ function addSessionCards() {
     type: "Reframe Lens",
     context: "Work",
     date: "Today",
-    title: "Start is the plan",
-    summary: "You do not need the whole route before taking the first honest step.",
+    title: "Context: start was invisible",
+    summary: "The stuck feeling became clearer when Alex turned the task into one visible move.",
     details: {
-      "Use when": "Planning becomes a way to delay contact with the task.",
-      "Try now": "Do 90 seconds inside the work, then decide what the plan needs.",
-      "New story": "Motion can create information."
+      "Old story": "I should already know the plan.",
+      "New story": "Motion can create information.",
+      "Try now": "Do 90 seconds inside the work, then decide what the plan needs."
     }
   });
   renderLibrary();
 }
 
-function setTalkContext(text) {
-  if ($("#card-dialog").open) $("#card-dialog").close();
+function formatLibraryCardContext(card) {
+  const detailText = Object.entries(card.details || {})
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(" | ");
+  return `Library card context. Area: ${card.area}. Type: ${card.type}. Context: ${card.context}. Date: ${card.date}. Title: ${card.title}. Summary: ${card.summary}. Details: ${detailText}. Use this card as context for the next coaching turn. It is pre-populated prototype content, so do not claim it was newly saved.`;
+}
+
+function getLibraryCoachPrompt(card) {
+  if (!card) {
+    return "Yes. Let’s use it as context, not as a verdict. What part feels most alive right now?";
+  }
+
+  if (card.area === "Strengths & Proof") {
+    return "Yes. I’ve brought that proof into the conversation. Let’s use it as evidence, not pressure. Where do you want to reuse it now?";
+  }
+
+  if (card.area === "Reframe Notes") {
+    return "Yes. I’ve brought that reframe in. Let’s use it to change the shape of this moment. What old story is trying to take over?";
+  }
+
+  if (card.area === "Connection Anchors") {
+    return "Yes. I’ve brought that connection card in. Let’s turn it toward one real person, not keep it inside the app. What would make this easiest to send?";
+  }
+
+  if (card.area === "HARD Goal Companion") {
+    return "Yes. I’ve brought that goal card in. Let’s keep it small and alive. Which piece needs attention: why, image, pressure, or this week’s step?";
+  }
+
+  return "Yes. I’ve brought that Library card in as context. What part feels most useful to revisit right now?";
+}
+
+function setTalkContext(cardOrTitle) {
+  const card = typeof cardOrTitle === "object" && cardOrTitle ? cardOrTitle : null;
+  const title = card ? card.title : String(cardOrTitle || "this");
+  $("#card-dialog").hidden = true;
   showAppView("talk-view");
   setTalkUiMode("voice");
-  const userMessage = `Can we talk about “${text}”?`;
-  const alexMessage = "Yes. Let’s use it as context, not as a verdict. What part feels most alive right now?";
+  const userMessage = `Can we talk about "${title}" from my Library?`;
+  const alexMessage = getLibraryCoachPrompt(card);
   appendMessage("user", userMessage);
   appendMessage("assistant", alexMessage);
+  if (card) {
+    state.messages.push({ role: "user", content: formatLibraryCardContext(card) });
+  }
   state.messages.push({ role: "user", content: userMessage }, { role: "assistant", content: alexMessage });
 }
 
@@ -943,13 +1040,18 @@ function bindEvents() {
     const talk = event.target.closest("[data-talk-context]");
     if (talk) {
       const index = Number(talk.dataset.talkContext);
-      const card = (Number.isFinite(index) ? visibleCards()[index] : visibleCards()[0]) || libraryCards[0];
-      setTalkContext(card.title);
+      const card = talk.dataset.talkContext === "top"
+        ? topOfMindCard
+        : (Number.isFinite(index) ? visibleCards()[index] : visibleCards()[0]) || libraryCards[0];
+      setTalkContext(card);
     }
   });
 
-  $("#close-dialog").addEventListener("click", () => $("#card-dialog").close());
-  $("#dialog-talk").addEventListener("click", () => setTalkContext($("#dialog-title").textContent));
+  $("#close-dialog").addEventListener("click", () => $("#card-dialog").hidden = true);
+  $("#card-dialog").addEventListener("click", (event) => {
+    if (event.target.id === "card-dialog") event.currentTarget.hidden = true;
+  });
+  $("#dialog-talk").addEventListener("click", () => setTalkContext(state.activeLibraryCard || $("#dialog-title").textContent));
 }
 
 function appendMessage(role, content) {

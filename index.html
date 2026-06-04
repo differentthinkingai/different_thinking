@@ -33,7 +33,7 @@
         </section>
 
         <section class="screen" id="welcome-screen">
-          <button class="icon-button welcome-back-button" data-back="intro-screen" type="button" aria-label="Back">‹</button>
+          <button class="icon-button welcome-back-button" data-back="intro-screen" type="button" aria-label="Back"></button>
           <div class="welcome-live-art" aria-hidden="true">
             <img class="welcome-edge-orb edge-left" src="12orbpng/The Guide Orb.png" alt="" />
             <img class="welcome-edge-orb edge-right" src="12orbpng/The Visionary Orb.png" alt="" />
@@ -55,11 +55,7 @@
             <button class="quiz-icon-button quiz-close" id="quiz-close" type="button" aria-label="Close quiz"></button>
           </div>
           <div class="quiz-main">
-            <div class="question-glyph" aria-hidden="true">
-              <span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span>
-            </div>
+            <span class="question-glyph alex-mark" aria-hidden="true"></span>
             <h2 class="quiz-title">Most like me</h2>
             <div class="question-card">
               <button class="choice" data-slot="top" type="button">
@@ -75,7 +71,7 @@
         </section>
 
         <section class="screen reveal-screen" id="reveal-screen">
-          <button class="icon-button reveal-back-button" id="reveal-back" type="button" aria-label="Back">‹</button>
+          <button class="icon-button reveal-back-button" id="reveal-back" type="button" aria-label="Back"></button>
           <div class="reveal-stage" id="reveal-stage">
             <div class="reveal-progress" id="reveal-progress" aria-label="Reveal progress"></div>
             <div class="reveal-orb-field" aria-hidden="true">
@@ -103,7 +99,7 @@
 
         <section class="screen download-bridge-screen" id="download-bridge-screen">
           <div class="download-bridge-top">
-            <button class="icon-button" data-back="reveal-screen" aria-label="Back">‹</button>
+            <button class="icon-button" data-back="reveal-screen" aria-label="Back"></button>
             <span class="alex-mark" aria-hidden="true"></span>
           </div>
           <div class="download-bridge-copy">
@@ -123,7 +119,7 @@
 
         <section class="screen" id="download-screen">
           <div class="topbar">
-            <button class="icon-button" data-back="download-bridge-screen" aria-label="Back">‹</button>
+            <button class="icon-button" data-back="download-bridge-screen" aria-label="Back"></button>
             <div class="download-heading">
               <p class="eyebrow">Coming soon</p>
               <h2>Deep Download</h2>
@@ -197,7 +193,7 @@
         <section class="screen app-screen" id="app-screen">
           <div class="app-view talk-view active" id="talk-view">
             <div class="coach-topbar">
-              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back">‹</button>
+              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back"></button>
               <div>
                 <h2><span>Your Coach</span>Alex</h2>
               </div>
@@ -249,15 +245,16 @@
 
           <div class="app-view" id="library-view">
             <div class="topbar">
-              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back">‹</button>
+              <button class="icon-button app-back-button" data-back="download-screen" type="button" aria-label="Back"></button>
               <div>
-                <h2><span>Your Curated</span>Feed</h2>
+                <h2><span>Your</span>Library</h2>
               </div>
               <span class="alex-mark library-mark"></span>
             </div>
             <div class="top-of-mind">
               <h3>Top of mind</h3>
-              <div class="meta"><span>Strength Snapshot</span><span>Life</span><span>Decision</span></div>
+              <div class="meta" id="top-card-meta"></div>
+              <h4 id="top-card-title"></h4>
               <p id="top-card-summary"></p>
               <button class="ghost-button" data-talk-context="top">Talk about this <span class="alex-mark mini"></span></button>
             </div>
@@ -271,22 +268,24 @@
             <button class="tab active" data-tab="talk-view">Talk</button>
             <button class="tab" data-tab="library-view">Library</button>
           </nav>
+
+          <div class="card-dialog-overlay" id="card-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" hidden>
+            <div class="card-dialog-sheet">
+              <div class="dialog-head">
+                <div>
+                  <p class="eyebrow" id="dialog-type"></p>
+                  <h3 id="dialog-title"></h3>
+                </div>
+                <button class="icon-button" id="close-dialog" type="button" aria-label="Close"></button>
+              </div>
+              <p id="dialog-summary"></p>
+              <div class="detail-grid" id="dialog-details"></div>
+              <button class="full-button" id="dialog-talk" type="button">Talk about this</button>
+            </div>
+          </div>
         </section>
       </section>
     </main>
-
-    <dialog id="card-dialog">
-      <div class="dialog-head">
-        <div>
-          <p class="eyebrow" id="dialog-type"></p>
-          <h3 id="dialog-title"></h3>
-        </div>
-        <button class="icon-button" id="close-dialog" aria-label="Close">×</button>
-      </div>
-      <p id="dialog-summary"></p>
-      <div class="detail-grid" id="dialog-details"></div>
-      <button class="full-button" id="dialog-talk">Talk about this</button>
-    </dialog>
 
     <script src="app.js"></script>
   </body>
