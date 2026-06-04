@@ -15,18 +15,36 @@
         </div>
 
         <section class="screen active" id="intro-screen">
-          <img class="intro-artwork" src="assets/intro-screen.jpg" alt="" />
-          <div class="intro-login-mask" aria-hidden="true"></div>
-          <button class="intro-join-button" id="join-now" type="button" aria-label="Join now">
-            <span class="sr-only">Join now</span>
+          <div class="intro-orbit" aria-hidden="true">
+            <img class="intro-orb intro-orb-one" src="12orbpng/The Weaver Orb.png" alt="" />
+            <img class="intro-orb intro-orb-two" src="12orbpng/The Accelerator Orb.png" alt="" />
+            <img class="intro-orb intro-orb-three" src="12orbpng/The Visionary Orb.png" alt="" />
+            <img class="intro-orb intro-orb-four" src="12orbpng/The Launcher Orb.png" alt="" />
+            <img class="intro-orb intro-orb-five" src="12orbpng/The Guide Orb.png" alt="" />
+            <img class="intro-orb intro-orb-six" src="12orbpng/The Spark Orb.png" alt="" />
+          </div>
+          <div class="intro-copy">
+            <span class="alex-mark intro-mark" aria-hidden="true"></span>
+            <h1>Unlock your neurodiverse potential</h1>
+          </div>
+          <button class="intro-join-button" id="join-now" type="button">
+            Join now
           </button>
         </section>
 
         <section class="screen" id="welcome-screen">
-          <img class="welcome-artwork" src="assets/welcome-screen.png" alt="" />
           <button class="icon-button welcome-back-button" data-back="intro-screen" type="button" aria-label="Back">‹</button>
-          <button class="welcome-start-button" id="start-quiz" type="button" aria-label="Start">
-            <span class="sr-only">Start</span>
+          <div class="welcome-live-art" aria-hidden="true">
+            <img class="welcome-edge-orb edge-left" src="12orbpng/The Guide Orb.png" alt="" />
+            <img class="welcome-edge-orb edge-right" src="12orbpng/The Visionary Orb.png" alt="" />
+            <img class="welcome-main-orb" src="12orbpng/The Launcher Orb.png" alt="" />
+          </div>
+          <div class="welcome-live-copy">
+            <h1>Discover how you <span>naturally create value.</span></h1>
+            <p>12 quick questions. No wrong answers. Just pick what feels most like you.</p>
+          </div>
+          <button class="welcome-start-button" id="start-quiz" type="button">
+            Start
           </button>
         </section>
 
@@ -44,16 +62,16 @@
             </div>
             <h2 class="quiz-title">Most like me</h2>
             <div class="question-card">
-              <button class="choice" data-choice="A">
-                <strong id="choice-a"></strong>
+              <button class="choice" data-slot="top" type="button">
+                <strong id="choice-top"></strong>
               </button>
               <div class="or">Or</div>
-              <button class="choice" data-choice="B">
-                <strong id="choice-b"></strong>
+              <button class="choice" data-slot="bottom" type="button">
+                <strong id="choice-bottom"></strong>
               </button>
             </div>
           </div>
-          <button class="quiz-next" id="quiz-next" type="button">Next</button>
+          <button class="quiz-next" id="quiz-next" type="button" aria-hidden="true" tabindex="-1">Next</button>
         </section>
 
         <section class="screen reveal-screen" id="reveal-screen">
@@ -78,6 +96,8 @@
                 <span class="share-mark" aria-hidden="true"></span>
               </button>
             </div>
+            <button class="reveal-summary-next" id="summary-next" type="button">Next</button>
+            <div class="reveal-continue-cue" id="reveal-continue-cue" aria-hidden="true"></div>
           </div>
         </section>
 
@@ -87,7 +107,7 @@
             <span class="alex-mark" aria-hidden="true"></span>
           </div>
           <div class="download-bridge-copy">
-            <h2><span>Your unique ability</span>is set.</h2>
+            <h2><span>Your unique ability</span> is set.</h2>
           </div>
           <div class="download-orb" aria-hidden="true">
             <img class="orb-image rest" id="download-orb" alt="" />
@@ -137,8 +157,8 @@
             <article>
               <span>04</span>
               <div>
-                <h3>Breakdown stage</h3>
-                <p>Where things slip, and what triggers it.</p>
+                <h3>Reset point</h3>
+                <p>Where things tend to slip, and what triggers it.</p>
               </div>
             </article>
             <article>
@@ -187,6 +207,15 @@
             <div class="talk-mode voice-talk-mode active" id="voice-talk-mode" data-talk-mode="voice" aria-label="Voice chat mode">
               <div class="orb-panel voice-orb-panel">
                 <img class="orb-image rest" id="talk-orb" alt="Alex Living Orb" />
+                <div class="voice-orb-effects" aria-hidden="true">
+                  <span class="voice-glow"></span>
+                  <span class="voice-ripple ripple-one"></span>
+                  <span class="voice-ripple ripple-two"></span>
+                  <span class="voice-particles"></span>
+                  <span class="voice-arc arc-one"></span>
+                  <span class="voice-arc arc-two"></span>
+                  <span class="voice-arc arc-three"></span>
+                </div>
                 <div class="sr-only" id="orb-state">Rest</div>
               </div>
               <div class="talk-actions">
@@ -224,7 +253,7 @@
               <div>
                 <h2><span>Your Curated</span>Feed</h2>
               </div>
-              <span class="alex-mark"></span>
+              <span class="alex-mark library-mark"></span>
             </div>
             <div class="top-of-mind">
               <h3>Top of mind</h3>

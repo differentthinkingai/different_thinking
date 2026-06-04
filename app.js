@@ -15,7 +15,7 @@ const archetypes = {
   "RA-PS": ["The Activator", "Smart Quick Starter", "You move first, test fast, and create momentum when others are still framing the problem."],
   "RA-MI": ["The Focuser", "Fast Focus Maker", "You build and stabilise momentum into high-output sprints."],
   "RA-ER": ["The Launcher", "Mission Momentum Maker", "You rally people toward a cause with infectious speed."],
-  "ER-PS": ["The Visionary", "Heart Led Vision", "You turn deeply held values into maps for meaningful change."],
+  "ER-PS": ["The Visionary", "Heart-Led Vision", "You turn deeply held values into maps for meaningful change."],
   "ER-MI": ["The Mentor", "Caring Knowledge Guide", "You make support sustainable through focused care and practical wisdom."],
   "ER-RA": ["The Igniter", "Purpose Action Spark", "You turn meaning into the first viable step."],
 };
@@ -38,25 +38,25 @@ const orbAssets = {
 const engineReveal = {
   PS: {
     title: "Pattern synthesis",
-    landscapeLabel: "Non-Linear Problem Solving",
+    landscapeLabel: "Non-linear problem solving",
     core: "You see the <strong>pattern</strong> before everyone has named the pieces. Your strength is finding the <strong>shape</strong> inside complexity.",
     compass: "You trust the hidden <strong>structure</strong>. When life feels noisy, the pattern tells you where to <strong>move</strong>."
   },
   MI: {
     title: "Motivated immersion",
-    landscapeLabel: "Interest-Driven Focus",
+    landscapeLabel: "Interest-driven focus",
     core: "You go <strong>deep</strong> when something matters. Focus arrives when interest gives your mind somewhere to <strong>land</strong>.",
     compass: "Depth is your <strong>compass</strong>. You move best when the work becomes rich enough to hold your <strong>attention</strong>."
   },
   RA: {
     title: "Rapid activation",
-    landscapeLabel: "Quick-Start Energy",
+    landscapeLabel: "Quick-start energy",
     core: "That's not <strong>impatience</strong>. That's how you're built. You bypass friction by <strong>starting</strong> before the <strong>doubt</strong> kicks in.",
     compass: "Motion is your <strong>compass</strong>. A first step helps your system turn uncertainty into <strong>information</strong>."
   },
   ER: {
     title: "Emotional resonance",
-    landscapeLabel: "Intuitive Connection",
+    landscapeLabel: "Intuitive connection",
     core: "You feel what <strong>matters</strong> before it has language. Meaning gives your energy <strong>direction</strong> and weight.",
     compass: "You don't move for efficiency alone. You move when the work carries <strong>meaning</strong>, care, and real <strong>stakes</strong>."
   }
@@ -65,74 +65,74 @@ const engineReveal = {
 const revealProfiles = {
   "The Weaver": {
     tagline: "You <strong>weave</strong> complex ideas into patterns other people can finally <strong>see</strong>.",
-    ability: "When your <strong>pattern-sense</strong> meets your depth, you become a weaver of complexity. You don't just collect ideas you <strong>connect</strong> them.",
+    ability: "When your <strong>pattern-sense</strong> meets your depth, you become a weaver of complexity. You don't just collect ideas; you <strong>connect</strong> them.",
     potentialTitle: "Your depth is an asset",
     potential: "<strong>Complexity</strong> gives you energy. This can sometimes mean simple next steps feel too blunt to <strong>trust</strong>."
   },
   "The Spark": {
     tagline: "You spot connections quickly and create <strong>clarity</strong> through immediate <strong>movement</strong>.",
-    ability: "When your <strong>pattern-sense</strong> meets your quick start, you become a spark for clarity. You don't just see the route you <strong>test</strong> it.",
+    ability: "When your <strong>pattern-sense</strong> meets your quick start, you become a spark for clarity. You don't just see the route; you <strong>test</strong> it.",
     potentialTitle: "Your speed is an asset",
     potential: "<strong>Clarity</strong> matters to you. This can sometimes mean your energy drops when a task has no shape to <strong>react</strong> to."
   },
   "The Mapper": {
     tagline: "You connect values with systems and find the <strong>path</strong> through <strong>complexity</strong>.",
-    ability: "When your <strong>systems mind</strong> meets your care, you become a mapmaker for meaning. You don't just see the problem you find the <strong>path</strong>.",
+    ability: "When your <strong>systems mind</strong> meets your care, you become a mapmaker for meaning. You don't just see the problem; you find the <strong>path</strong>.",
     potentialTitle: "Your meaning is an asset",
     potential: "You see what sits <strong>underneath</strong>. This can sometimes mean you wait for the whole map before taking the next <strong>step</strong>."
   },
   "The Builder": {
     tagline: "You turn deep focus into <strong>models</strong>, craft, and durable <strong>expertise</strong>.",
-    ability: "When your <strong>depth</strong> meets your pattern-sense, you become a builder of insight. You don't just learn it you <strong>shape</strong> it.",
+    ability: "When your <strong>depth</strong> meets your pattern-sense, you become a builder of insight. You don't just learn it; you <strong>shape</strong> it.",
     potentialTitle: "Your focus is an asset",
     potential: "<strong>Depth</strong> helps you build real mastery. This can sometimes mean starting feels hard until the model feels <strong>complete</strong>."
   },
   "The Accelerator": {
     tagline: "You turn interest into <strong>skill</strong> through fast, hands-on <strong>momentum</strong>.",
-    ability: "When your <strong>focus</strong> meets your momentum, you become an accelerator for skill. You don't just practice it you make it <strong>move</strong>.",
+    ability: "When your <strong>focus</strong> meets your momentum, you become an accelerator for skill. You don't just practice it; you make it <strong>move</strong>.",
     potentialTitle: "Your momentum is an asset",
     potential: "<strong>Immersion</strong> turns quickly into skill for you. This can sometimes mean you outpace the support that keeps progress <strong>steady</strong>."
   },
   "The Guide": {
     tagline: "You create calm expertise rooted in <strong>care</strong>, depth, and <strong>trust</strong>.",
-    ability: "When your <strong>depth</strong> meets your care, you become a guide people can trust. You don't just know the answer you hold the <strong>person</strong>.",
+    ability: "When your <strong>depth</strong> meets your care, you become a guide people can trust. You don't just know the answer; you hold the <strong>person</strong>.",
     potentialTitle: "Your care is an asset",
     potential: "<strong>Quality</strong> and people both matter to you. This can sometimes mean your energy fades when the work loses depth or <strong>trust</strong>."
   },
   "The Activator": {
     tagline: "You move first, test fast, and turn <strong>uncertainty</strong> into <strong>momentum</strong>.",
-    ability: "When your <strong>momentum</strong> meets your pattern-sense, you become an activator of smart action. You don't just plan the move you make it <strong>real</strong>.",
+    ability: "When your <strong>momentum</strong> meets your pattern-sense, you become an activator of smart action. You don't just plan the move; you make it <strong>real</strong>.",
     potentialTitle: "Your movement is an asset",
     potential: "<strong>Action</strong> helps you think clearly. This can sometimes mean you move before everyone else has caught <strong>up</strong>."
   },
   "The Focuser": {
     tagline: "You turn quick energy into <strong>focused</strong>, high-output <strong>sprints</strong>.",
-    ability: "When your <strong>momentum</strong> meets your depth, you become a focuser of energy. You don't just start fast you stay with what <strong>matters</strong>.",
+    ability: "When your <strong>momentum</strong> meets your depth, you become a focuser of energy. You don't just start fast; you stay with what <strong>matters</strong>.",
     potentialTitle: "Your sprint is an asset",
     potential: "<strong>Momentum</strong> becomes powerful when it has a focus. This can sometimes mean loose priorities scatter your <strong>energy</strong>."
   },
   "The Launcher": {
     tagline: "You <strong>rally</strong> the world toward a cause with infectious <strong>speed</strong>.",
     compass: "You don't move fast for <strong>efficiency</strong>; you move fast because you <strong>care</strong>. <strong>Meaning</strong> is the fuel for your speed.",
-    ability: "When your <strong>drive</strong> meets your heart, you become an <strong>engine</strong> for change. You don't just dream it you <strong>build</strong> it.",
+    ability: "When your <strong>drive</strong> meets your heart, you become an <strong>engine</strong> for change. You don't just dream it; you <strong>build</strong> it.",
     potentialTitle: "Your momentum is an asset",
-    potential: "<strong>Meaning</strong> is not optional for you. This can sometimes mean your energy <strong>evaporates</strong> when a project feels <strong>hollow</strong>."
+    potential: "<strong>Meaning</strong> is not optional for you. This can sometimes mean your energy <strong>drops</strong> when a project feels <strong>disconnected</strong>."
   },
   "The Visionary": {
     tagline: "You turn deeply held values into <strong>maps</strong> for meaningful <strong>change</strong>.",
-    ability: "When your <strong>heart</strong> meets your systems mind, you become a visionary for change. You don't just feel what matters you give it <strong>shape</strong>.",
+    ability: "When your <strong>heart</strong> meets your systems mind, you become a visionary for change. You don't just feel what matters; you give it <strong>shape</strong>.",
     potentialTitle: "Your vision is an asset",
     potential: "<strong>Meaning</strong> arrives quickly for you. This can sometimes mean ordinary steps feel too small for what you can <strong>see</strong>."
   },
   "The Mentor": {
     tagline: "You make support sustainable through <strong>care</strong>, focus, and practical <strong>wisdom</strong>.",
-    ability: "When your <strong>care</strong> meets your depth, you become a mentor people can lean on. You don't just support them you make support <strong>sustainable</strong>.",
+    ability: "When your <strong>care</strong> meets your depth, you become a mentor people can lean on. You don't just support them; you make support <strong>sustainable</strong>.",
     potentialTitle: "Your steadiness is an asset",
     potential: "People trust your <strong>care</strong> and wisdom. This can sometimes mean you carry too much before naming what you <strong>need</strong>."
   },
   "The Igniter": {
     tagline: "You turn meaning into the first <strong>brave</strong> step.",
-    ability: "When your <strong>meaning</strong> meets your momentum, you become an igniter of first steps. You don't just care deeply you <strong>move</strong>.",
+    ability: "When your <strong>meaning</strong> meets your momentum, you become an igniter of first steps. You don't just care deeply; you <strong>move</strong>.",
     potentialTitle: "Your spark is an asset",
     potential: "<strong>Meaning</strong> pulls you into motion. This can sometimes mean urgency rises before the plan has enough <strong>shape</strong>."
   }
@@ -153,6 +153,9 @@ const questions = [
   ["ER", "RA", "I move when the meaning is alive enough to pull me forward.", "I move when there is a clear first step I can take now."]
 ];
 
+const topChoiceByQuestion = ["A", "A", "B", "B", "A", "A", "B", "B", "A", "B", "B", "A"];
+const initialAlexMessage = "I’m Alex. Tell me what you want to work through, or brain dump what is in your head.";
+
 const libraryCards = [
   {
     area: "Strengths & Proof",
@@ -160,7 +163,7 @@ const libraryCards = [
     context: "Life",
     date: "Jan 28",
     title: "Calm under pressure",
-    summary: "When the plan changed, you picked a next step instead of freezing.",
+    summary: "When the plan changed, you picked a next step instead of shutting down.",
     details: {
       "When this shows up": "Last-minute plan changes, messy handoffs, ambiguous starts.",
       "Why it matters": "You stabilise chaos into action.",
@@ -173,11 +176,11 @@ const libraryCards = [
     context: "Work",
     date: "Feb 11",
     title: "Data, not verdict",
-    summary: "A missed plan is signal about conditions, not a character diagnosis.",
+    summary: "A missed plan is signal about conditions, not a character verdict.",
     details: {
       "Use when": "A task slips and shame starts writing the story.",
       "Try now": "Ask what condition was missing: time, clarity, energy, support.",
-      "New story": "The setup failed before you did."
+      "New story": "The setup needed adjusting before you did."
     }
   },
   {
@@ -223,11 +226,18 @@ const state = {
   voiceRecorder: null,
   voiceRecordingStartedAt: 0,
   voiceMaxTimer: null,
+  voiceSilenceTimer: null,
+  voiceLastActivityAt: 0,
+  voiceHasSignal: false,
   activeVoiceAudio: null,
+  activeVoiceAudioProtected: false,
+  introVoicePlayed: false,
+  introVoiceController: null,
+  quizAdvanceTimer: null,
   messages: [
     {
       role: "assistant",
-      content: "I’m Alex. Tell me what you want to work through, or brain dump what is in your head."
+      content: initialAlexMessage
     }
   ]
 };
@@ -293,14 +303,35 @@ function scoreQuiz() {
   return { raw, matchup, primary, amplifier, handle, capability, description };
 }
 
-function renderQuestion() {
+function getDisplayedChoices() {
   const [, , copyA, copyB] = questions[state.q];
-  $("#choice-a").textContent = copyA;
-  $("#choice-b").textContent = copyB;
+  const topChoice = topChoiceByQuestion[state.q] || "A";
+  const bottomChoice = topChoice === "A" ? "B" : "A";
+  return {
+    top: { key: topChoice, copy: topChoice === "A" ? copyA : copyB },
+    bottom: { key: bottomChoice, copy: bottomChoice === "A" ? copyA : copyB }
+  };
+}
+
+function renderQuestion() {
+  const choices = getDisplayedChoices();
+  const topButton = $(".choice[data-slot='top']");
+  const bottomButton = $(".choice[data-slot='bottom']");
+  topButton.dataset.choice = choices.top.key;
+  bottomButton.dataset.choice = choices.bottom.key;
+  $("#choice-top").textContent = choices.top.copy;
+  $("#choice-bottom").textContent = choices.bottom.copy;
   $("#quiz-dots").innerHTML = questions.map((_, index) => `<span class="${index <= state.q ? "filled" : ""}"></span>`).join("");
   $$(".choice").forEach((button) => {
     button.classList.toggle("is-selected", state.answers[state.q] === button.dataset.choice);
   });
+}
+
+function selectQuizChoice(choice) {
+  window.clearTimeout(state.quizAdvanceTimer);
+  state.answers[state.q] = choice;
+  renderQuestion();
+  state.quizAdvanceTimer = window.setTimeout(goToNextQuestion, 260);
 }
 
 function goToNextQuestion() {
@@ -317,6 +348,7 @@ function goToNextQuestion() {
 }
 
 function goToPreviousQuestion() {
+  window.clearTimeout(state.quizAdvanceTimer);
   if (state.q > 0) {
     state.q -= 1;
     renderQuestion();
@@ -360,8 +392,10 @@ function renderReveal() {
   $("#reveal-action-text").textContent = card.action || "";
   $("#next-reveal").classList.toggle("is-share", card.layout === "summary");
   $("#next-reveal").classList.toggle("is-discover", card.layout === "archetype");
-  $(".alex-dot-mark").style.display = card.layout === "archetype" ? "inline-block" : "none";
+  $("#next-reveal .alex-dot-mark").style.display = card.layout === "archetype" ? "inline-block" : "none";
   $(".share-mark").style.display = card.layout === "summary" ? "inline-block" : "none";
+  $("#summary-next").style.display = card.layout === "summary" ? "inline-flex" : "none";
+  $("#reveal-continue-cue").style.display = state.reveal > 0 && state.reveal < cards.length - 1 ? "block" : "none";
   setOrbImages();
 }
 
@@ -388,6 +422,26 @@ function advanceReveal() {
     renderReveal();
   } else {
     showScreen("download-bridge-screen");
+  }
+}
+
+async function shareArchetype() {
+  if (!state.result) return;
+  const text = `My Different Thinking archetype is ${displayArchetypeName(state.result.handle)}: ${state.result.description}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "My Different Thinking archetype", text });
+      return;
+    } catch (error) {
+      if (error.name === "AbortError") return;
+    }
+  }
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Keep the share action non-blocking in the prototype.
+    }
   }
 }
 
@@ -443,7 +497,7 @@ function addSessionCards() {
     title: "Start is the plan",
     summary: "You do not need the whole route before taking the first honest step.",
     details: {
-      "Use when": "Planning becomes a way to avoid contact with the task.",
+      "Use when": "Planning becomes a way to delay contact with the task.",
       "Try now": "Do 90 seconds inside the work, then decide what the plan needs.",
       "New story": "Motion can create information."
     }
@@ -454,12 +508,45 @@ function addSessionCards() {
 function setTalkContext(text) {
   if ($("#card-dialog").open) $("#card-dialog").close();
   showAppView("talk-view");
-  setTalkUiMode("text");
+  setTalkUiMode("voice");
   const userMessage = `Can we talk about “${text}”?`;
   const alexMessage = "Yes. Let’s use it as context, not as a verdict. What part feels most alive right now?";
   appendMessage("user", userMessage);
   appendMessage("assistant", alexMessage);
   state.messages.push({ role: "user", content: userMessage }, { role: "assistant", content: alexMessage });
+}
+
+function clearVoiceTimers() {
+  window.clearTimeout(state.voiceMaxTimer);
+  window.clearInterval(state.voiceSilenceTimer);
+  state.voiceMaxTimer = null;
+  state.voiceSilenceTimer = null;
+}
+
+async function playInitialAlexVoiceOnce() {
+  if (state.introVoicePlayed) return;
+  state.introVoicePlayed = true;
+  state.introVoiceController = new AbortController();
+  setVoiceStatus("thinking");
+
+  try {
+    const response = await fetch("/api/speech", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: state.introVoiceController.signal,
+      body: JSON.stringify({ text: initialAlexMessage })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Alex voice is unavailable.");
+    await playVoiceOutput(data.audioContent, data.audioMimeType || "audio/mpeg", { protectedPlayback: true });
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      appendMessage("assistant", "Alex is ready in voice mode, but the welcome audio could not play this time.");
+    }
+    setVoiceStatus("idle");
+  } finally {
+    state.introVoiceController = null;
+  }
 }
 
 function setOrbImages() {
@@ -481,6 +568,7 @@ function setVoiceStatus(status) {
   state.orbMode = status === "listening" ? "listening" : status === "thinking" ? "thinking" : status === "speaking" ? "speaking" : "rest";
   const label = status === "listening" ? "Listening" : status === "thinking" ? "Thinking" : status === "speaking" ? "Speaking" : "Rest";
   $("#orb-state").textContent = label;
+  $("#voice-talk-mode")?.setAttribute("data-voice-status", state.orbMode);
   setOrbImages();
 
   const voiceButton = $("#voice-button");
@@ -490,7 +578,7 @@ function setVoiceStatus(status) {
   voiceButton?.classList.toggle("is-speaking", status === "speaking");
   if (voiceButton) {
     voiceButton.disabled = status === "thinking";
-    voiceButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Stop Alex voice" : "Start voice chat");
+    voiceButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Alex is speaking" : "Start voice chat");
   }
   if (stopButton) {
     stopButton.disabled = status === "idle";
@@ -506,6 +594,7 @@ async function handleVoiceButton() {
   }
 
   if (state.voiceStatus === "speaking") {
+    if (state.activeVoiceAudioProtected) return;
     stopActiveVoiceAudio();
     return;
   }
@@ -516,6 +605,13 @@ async function handleVoiceButton() {
 async function handleVoiceStop() {
   if (state.voiceStatus === "listening") {
     await stopVoiceRecording();
+    return;
+  }
+
+  if (state.voiceStatus === "thinking" && state.introVoiceController) {
+    state.introVoiceController.abort();
+    state.introVoiceController = null;
+    setVoiceStatus("idle");
     return;
   }
 
@@ -532,11 +628,27 @@ async function startVoiceRecording() {
 
   try {
     stopActiveVoiceAudio();
-    state.voiceRecorder = await createPcmRecorder();
+    clearVoiceTimers();
+    state.voiceHasSignal = false;
+    state.voiceLastActivityAt = 0;
+    state.voiceRecorder = await createPcmRecorder((rms) => {
+      if (rms > 0.018) {
+        state.voiceHasSignal = true;
+        state.voiceLastActivityAt = Date.now();
+        $("#voice-talk-mode")?.classList.add("has-voice-input");
+      }
+    });
     state.voiceRecordingStartedAt = Date.now();
     state.voiceMaxTimer = window.setTimeout(() => {
       if (state.voiceStatus === "listening") stopVoiceRecording();
     }, 30000);
+    state.voiceSilenceTimer = window.setInterval(() => {
+      const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
+      const silenceDuration = Date.now() - state.voiceLastActivityAt;
+      if (state.voiceStatus === "listening" && state.voiceHasSignal && recordingDuration > 1400 && silenceDuration > 950) {
+        stopVoiceRecording();
+      }
+    }, 250);
     setVoiceStatus("listening");
   } catch (error) {
     setVoiceStatus("idle");
@@ -551,8 +663,8 @@ async function stopVoiceRecording() {
   if (!recorder) return;
 
   state.voiceRecorder = null;
-  window.clearTimeout(state.voiceMaxTimer);
-  state.voiceMaxTimer = null;
+  clearVoiceTimers();
+  $("#voice-talk-mode")?.classList.remove("has-voice-input");
   setVoiceStatus("thinking");
 
   try {
@@ -568,7 +680,7 @@ async function stopVoiceRecording() {
   }
 }
 
-async function createPcmRecorder() {
+async function createPcmRecorder(onVoiceActivity) {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: {
       echoCancellation: true,
@@ -584,7 +696,13 @@ async function createPcmRecorder() {
   const chunks = [];
 
   processor.onaudioprocess = (event) => {
-    chunks.push(new Float32Array(event.inputBuffer.getChannelData(0)));
+    const channel = event.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(channel));
+    if (onVoiceActivity) {
+      let sum = 0;
+      for (let i = 0; i < channel.length; i += 1) sum += channel[i] * channel[i];
+      onVoiceActivity(Math.sqrt(sum / channel.length));
+    }
   };
 
   source.connect(processor);
@@ -686,21 +804,24 @@ async function askAlexByVoice(audioBuffer, sampleRateHertz) {
   }
 }
 
-function playVoiceOutput(audioContent, mimeType) {
+function playVoiceOutput(audioContent, mimeType, options = {}) {
   return new Promise((resolve) => {
     stopActiveVoiceAudio(false);
     const audio = new Audio(`data:${mimeType};base64,${audioContent}`);
     state.activeVoiceAudio = audio;
+    state.activeVoiceAudioProtected = Boolean(options.protectedPlayback);
     setVoiceStatus("speaking");
 
     audio.addEventListener("ended", () => {
       if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      state.activeVoiceAudioProtected = false;
       setVoiceStatus("idle");
       resolve();
     }, { once: true });
 
     audio.addEventListener("error", () => {
       if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      state.activeVoiceAudioProtected = false;
       appendMessage("assistant", "Alex replied in text, but the audio could not play in this browser.");
       setVoiceStatus("idle");
       resolve();
@@ -708,6 +829,7 @@ function playVoiceOutput(audioContent, mimeType) {
 
     audio.play().catch(() => {
       if (state.activeVoiceAudio === audio) state.activeVoiceAudio = null;
+      state.activeVoiceAudioProtected = false;
       appendMessage("assistant", "Alex replied in text, but the browser blocked audio playback.");
       setVoiceStatus("idle");
       resolve();
@@ -720,6 +842,7 @@ function stopActiveVoiceAudio(updateStatus = true) {
   state.activeVoiceAudio.pause();
   state.activeVoiceAudio.currentTime = 0;
   state.activeVoiceAudio = null;
+  state.activeVoiceAudioProtected = false;
   if (updateStatus) setVoiceStatus("idle");
 }
 
@@ -727,6 +850,7 @@ function bindEvents() {
   $("#join-now").addEventListener("click", () => showScreen("welcome-screen"));
 
   $("#start-quiz").addEventListener("click", () => {
+    window.clearTimeout(state.quizAdvanceTimer);
     state.q = 0;
     state.answers = [];
     state.result = null;
@@ -735,19 +859,28 @@ function bindEvents() {
   });
 
   $$(".choice").forEach((button) => button.addEventListener("click", () => {
-    state.answers[state.q] = button.dataset.choice;
-    renderQuestion();
+    selectQuizChoice(button.dataset.choice);
   }));
 
   $("#quiz-next").addEventListener("click", goToNextQuestion);
   $("#quiz-back").addEventListener("click", goToPreviousQuestion);
-  $("#quiz-close").addEventListener("click", () => showScreen("welcome-screen"));
+  $("#quiz-close").addEventListener("click", () => {
+    window.clearTimeout(state.quizAdvanceTimer);
+    showScreen("welcome-screen");
+  });
 
-  $("#next-reveal").addEventListener("click", advanceReveal);
+  $("#next-reveal").addEventListener("click", () => {
+    if (state.reveal === makeRevealCards().length - 1) {
+      shareArchetype();
+      return;
+    }
+    advanceReveal();
+  });
+  $("#summary-next").addEventListener("click", advanceReveal);
   $("#reveal-back").addEventListener("click", goToPreviousReveal);
 
   $("#reveal-screen").addEventListener("click", (event) => {
-    if (event.target.closest("#next-reveal, #reveal-back")) return;
+    if (event.target.closest("#next-reveal, #summary-next, #reveal-back")) return;
     if (state.reveal > 0 && state.reveal < makeRevealCards().length - 1) {
       advanceReveal();
     }
@@ -759,6 +892,7 @@ function bindEvents() {
     setTalkUiMode("voice");
     showAppView("talk-view");
     showScreen("app-screen");
+    playInitialAlexVoiceOnce();
   });
 
   $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
