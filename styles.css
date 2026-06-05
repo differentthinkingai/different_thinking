@@ -3030,6 +3030,10 @@ dialog::backdrop {
   gap: 12px;
 }
 
+.reveal-layout-summary .orb-four {
+  bottom: -220px;
+}
+
 .reveal-layout-summary .reveal-panel {
   width: min(336px, calc(100% - 44px));
   margin-top: clamp(112px, 15.5vh, 128px);
@@ -3091,6 +3095,15 @@ dialog::backdrop {
   min-height: 48px;
   margin: 0 auto;
   border-radius: var(--primary-radius);
+}
+
+#download-bridge-screen {
+  --download-bridge-orb-space: clamp(300px, 42vh, 376px);
+}
+
+#download-bridge-screen .download-orb {
+  flex: 0 0 var(--download-bridge-orb-space);
+  min-height: 0;
 }
 
 .reveal-continue-cue {
@@ -3398,6 +3411,14 @@ dialog::backdrop {
 
   .reveal-layout-summary .reveal-summary-next {
     min-height: 44px;
+  }
+
+  .reveal-layout-summary .orb-four {
+    bottom: -198px;
+  }
+
+  #download-bridge-screen {
+    --download-bridge-orb-space: clamp(220px, 34vh, 270px);
   }
 
   .voice-orb-panel {
