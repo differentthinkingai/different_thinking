@@ -265,6 +265,13 @@ const libraryCards = [
 
 const topOfMindCard = libraryCards[0];
 
+const VOICE_ACTIVITY_RMS_THRESHOLD = 0.008;
+const VOICE_AUTO_STOP_MIN_MS = 2500;
+const VOICE_AUTO_STOP_SILENCE_MS = 5000;
+const VOICE_MAX_RECORDING_MS = 55000;
+const VOICE_MIN_RECORDING_MS = 600;
+const VOICE_HISTORY_LIMIT = 9;
+
 const state = {
   screen: "intro-screen",
   q: 0,
@@ -695,7 +702,15 @@ async function handleVoiceButton() {
   await startVoiceRecording();
 }
 
+async function switchToVoiceAndStartRecording() {
+  setTalkUiMode("voice");
+  await startVoiceRecording();
+}
+
 async function startVoiceRecording() {
+  if (state.voiceStatus === "listening" || state.voiceStatus === "thinking") return;
+  if (state.activeVoiceAudioProtected) return;
+
   if (!navigator.mediaDevices?.getUserMedia) {
     appendMessage("assistant", "Voice recording is not available in this browser yet.");
     return;
@@ -707,7 +722,7 @@ async function startVoiceRecording() {
     state.voiceHasSignal = false;
     state.voiceLastActivityAt = 0;
     state.voiceRecorder = await createPcmRecorder((rms) => {
-      if (rms > 0.018) {
+      if (rms > VOICE_ACTIVITY_RMS_THRESHOLD) {
         state.voiceHasSignal = true;
         state.voiceLastActivityAt = Date.now();
         $("#voice-talk-mode")?.classList.add("has-voice-input");
@@ -716,11 +731,16 @@ async function startVoiceRecording() {
     state.voiceRecordingStartedAt = Date.now();
     state.voiceMaxTimer = window.setTimeout(() => {
       if (state.voiceStatus === "listening") stopVoiceRecording();
-    }, 30000);
+    }, VOICE_MAX_RECORDING_MS);
     state.voiceSilenceTimer = window.setInterval(() => {
       const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
       const silenceDuration = Date.now() - state.voiceLastActivityAt;
-      if (state.voiceStatus === "listening" && state.voiceHasSignal && recordingDuration > 1400 && silenceDuration > 950) {
+      if (
+        state.voiceStatus === "listening" &&
+        state.voiceHasSignal &&
+        recordingDuration > VOICE_AUTO_STOP_MIN_MS &&
+        silenceDuration > VOICE_AUTO_STOP_SILENCE_MS
+      ) {
         stopVoiceRecording();
       }
     }, 250);
@@ -745,7 +765,7 @@ async function stopVoiceRecording() {
   try {
     const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
     const recording = await recorder.stop();
-    if (recordingDuration < 600) {
+    if (recordingDuration < VOICE_MIN_RECORDING_MS) {
       throw new Error("I need a slightly longer voice note to hear you clearly.");
     }
     await askAlexByVoice(recording.audioBuffer, recording.sampleRateHertz);
@@ -855,7 +875,7 @@ async function askAlexByVoice(audioBuffer, sampleRateHertz) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      messages: state.messages,
+      messages: state.messages.slice(-VOICE_HISTORY_LIMIT),
       profile: getProfilePayload(),
       mode: state.talkMode,
       audioContent: arrayBufferToBase64(audioBuffer),
@@ -976,7 +996,7 @@ function bindEvents() {
 
   $("#mode-toggle").addEventListener("click", () => setTalkUiMode("text"));
 
-  $("#voice-mode-toggle").addEventListener("click", () => setTalkUiMode("voice"));
+  $("#voice-mode-toggle").addEventListener("click", switchToVoiceAndStartRecording);
 
   $("#voice-button").addEventListener("click", handleVoiceButton);
 
