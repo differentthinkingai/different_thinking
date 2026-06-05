@@ -266,10 +266,9 @@ const libraryCards = [
 const topOfMindCard = libraryCards[0];
 
 const VOICE_ACTIVITY_RMS_THRESHOLD = 0.008;
-const VOICE_AUTO_STOP_MIN_MS = 2500;
-const VOICE_AUTO_STOP_SILENCE_MS = 5000;
-const VOICE_MAX_RECORDING_MS = 55000;
+const VOICE_MAX_RECORDING_MS = 59000;
 const VOICE_MIN_RECORDING_MS = 600;
+const VOICE_TARGET_SAMPLE_RATE = 16000;
 const VOICE_HISTORY_LIMIT = 9;
 
 const state = {
@@ -288,7 +287,6 @@ const state = {
   voiceRecorder: null,
   voiceRecordingStartedAt: 0,
   voiceMaxTimer: null,
-  voiceSilenceTimer: null,
   voiceLastActivityAt: 0,
   voiceHasSignal: false,
   activeVoiceAudio: null,
@@ -623,9 +621,11 @@ function setTalkContext(cardOrTitle) {
 
 function clearVoiceTimers() {
   window.clearTimeout(state.voiceMaxTimer);
-  window.clearInterval(state.voiceSilenceTimer);
   state.voiceMaxTimer = null;
-  state.voiceSilenceTimer = null;
+}
+
+function logVoiceDebug(event, detail = {}) {
+  console.info(`[voice] ${event}`, detail);
 }
 
 async function playInitialAlexVoiceOnce() {
@@ -689,7 +689,7 @@ function setVoiceStatus(status) {
 
 async function handleVoiceButton() {
   if (state.voiceStatus === "listening") {
-    await stopVoiceRecording();
+    await stopVoiceRecording("manual");
     return;
   }
 
@@ -729,21 +729,10 @@ async function startVoiceRecording() {
       }
     });
     state.voiceRecordingStartedAt = Date.now();
+    state.voiceLastActivityAt = state.voiceRecordingStartedAt;
     state.voiceMaxTimer = window.setTimeout(() => {
-      if (state.voiceStatus === "listening") stopVoiceRecording();
+      if (state.voiceStatus === "listening") stopVoiceRecording("max-duration");
     }, VOICE_MAX_RECORDING_MS);
-    state.voiceSilenceTimer = window.setInterval(() => {
-      const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
-      const silenceDuration = Date.now() - state.voiceLastActivityAt;
-      if (
-        state.voiceStatus === "listening" &&
-        state.voiceHasSignal &&
-        recordingDuration > VOICE_AUTO_STOP_MIN_MS &&
-        silenceDuration > VOICE_AUTO_STOP_SILENCE_MS
-      ) {
-        stopVoiceRecording();
-      }
-    }, 250);
     setVoiceStatus("listening");
   } catch (error) {
     setVoiceStatus("idle");
@@ -753,7 +742,7 @@ async function startVoiceRecording() {
   }
 }
 
-async function stopVoiceRecording() {
+async function stopVoiceRecording(reason = "manual") {
   const recorder = state.voiceRecorder;
   if (!recorder) return;
 
@@ -765,10 +754,21 @@ async function stopVoiceRecording() {
   try {
     const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
     const recording = await recorder.stop();
+    logVoiceDebug("recording-stopped", {
+      reason,
+      wallDurationMs: recordingDuration,
+      capturedDurationMs: recording.durationMs,
+      inputSampleRateHertz: recording.inputSampleRateHertz,
+      sampleRateHertz: recording.sampleRateHertz,
+      chunkCount: recording.chunkCount,
+      audioByteLength: recording.audioByteLength,
+      recorderType: recording.recorderType,
+      trackEvents: recording.trackEvents
+    });
     if (recordingDuration < VOICE_MIN_RECORDING_MS) {
       throw new Error("I need a slightly longer voice note to hear you clearly.");
     }
-    await askAlexByVoice(recording.audioBuffer, recording.sampleRateHertz);
+    await askAlexByVoice(recording, reason);
   } catch (error) {
     appendMessage("assistant", error.message || "Voice chat did not work this time. Please try again.");
     setVoiceStatus("idle");
@@ -780,42 +780,237 @@ async function createPcmRecorder(onVoiceActivity) {
     audio: {
       echoCancellation: true,
       noiseSuppression: true,
-      autoGainControl: true
+      autoGainControl: true,
+      channelCount: 1,
+      sampleRate: VOICE_TARGET_SAMPLE_RATE
     }
   });
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  const audioContext = new AudioContextClass();
+  if (!AudioContextClass) {
+    stream.getTracks().forEach((track) => track.stop());
+    throw new Error("Voice recording is not available in this browser yet.");
+  }
+
+  const audioContext = createVoiceAudioContext(AudioContextClass);
   await audioContext.resume();
   const source = audioContext.createMediaStreamSource(stream);
-  const processor = audioContext.createScriptProcessor(4096, 1, 1);
   const chunks = [];
+  const trackEvents = [];
+  const startedAt = Date.now();
 
-  processor.onaudioprocess = (event) => {
-    const channel = event.inputBuffer.getChannelData(0);
-    chunks.push(new Float32Array(channel));
+  const rememberTrackEvent = (type) => {
+    const event = { type, atMs: Date.now() - startedAt };
+    trackEvents.push(event);
+    logVoiceDebug("track-event", event);
+  };
+
+  stream.getAudioTracks().forEach((track) => {
+    track.addEventListener("ended", () => rememberTrackEvent("ended"));
+    track.addEventListener("mute", () => rememberTrackEvent("mute"));
+    track.addEventListener("unmute", () => rememberTrackEvent("unmute"));
+  });
+
+  const pushSamples = (samples, rms) => {
+    if (!samples?.length) return;
+    chunks.push(samples);
     if (onVoiceActivity) {
-      let sum = 0;
-      for (let i = 0; i < channel.length; i += 1) sum += channel[i] * channel[i];
-      onVoiceActivity(Math.sqrt(sum / channel.length));
+      onVoiceActivity(Number.isFinite(rms) ? rms : calculateRms(samples));
     }
   };
 
-  source.connect(processor);
-  processor.connect(audioContext.destination);
+  let connection;
+  try {
+    connection = await createAudioWorkletRecorder(audioContext, source, pushSamples);
+  } catch (error) {
+    logVoiceDebug("audio-worklet-fallback", { message: error.message });
+    connection = createScriptProcessorRecorder(audioContext, source, pushSamples);
+  }
+
+  logVoiceDebug("recording-started", {
+    recorderType: connection.recorderType,
+    inputSampleRateHertz: Math.round(audioContext.sampleRate)
+  });
 
   return {
     sampleRateHertz: audioContext.sampleRate,
     async stop() {
-      processor.disconnect();
-      source.disconnect();
+      const inputSampleRateHertz = audioContext.sampleRate;
+      connection.flush?.();
+      await new Promise((resolve) => window.setTimeout(resolve, 120));
+      connection.disconnect();
+      disconnectAudioNode(source);
       stream.getTracks().forEach((track) => track.stop());
       await audioContext.close();
-      return {
-        audioBuffer: encodeWav(mergeAudioChunks(chunks), audioContext.sampleRate),
-        sampleRateHertz: audioContext.sampleRate
-      };
+      return finishPcmRecording(chunks, inputSampleRateHertz, connection.recorderType, trackEvents);
     }
   };
+}
+
+function createVoiceAudioContext(AudioContextClass) {
+  try {
+    return new AudioContextClass({ sampleRate: VOICE_TARGET_SAMPLE_RATE });
+  } catch (error) {
+    return new AudioContextClass();
+  }
+}
+
+async function createAudioWorkletRecorder(audioContext, source, pushSamples) {
+  if (!audioContext.audioWorklet || !window.AudioWorkletNode) {
+    throw new Error("AudioWorklet is unavailable.");
+  }
+
+  const workletCode = `
+class AlexPcmRecorder extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.buffer = new Float32Array(4096);
+    this.offset = 0;
+    this.port.onmessage = (event) => {
+      if (event.data && event.data.type === "flush") this.flush();
+    };
+  }
+
+  flush() {
+    if (!this.offset) return;
+    const samples = this.buffer.slice(0, this.offset);
+    let sum = 0;
+    for (let i = 0; i < samples.length; i += 1) sum += samples[i] * samples[i];
+    this.port.postMessage({
+      type: "chunk",
+      samples: samples.buffer,
+      rms: Math.sqrt(sum / samples.length)
+    }, [samples.buffer]);
+    this.offset = 0;
+  }
+
+  process(inputs) {
+    const input = inputs[0];
+    const channel = input && input[0];
+    if (!channel) return true;
+    for (let i = 0; i < channel.length; i += 1) {
+      this.buffer[this.offset] = channel[i];
+      this.offset += 1;
+      if (this.offset === this.buffer.length) this.flush();
+    }
+    return true;
+  }
+}
+
+registerProcessor("alex-pcm-recorder", AlexPcmRecorder);
+`;
+  const workletUrl = URL.createObjectURL(new Blob([workletCode], { type: "text/javascript" }));
+  try {
+    await audioContext.audioWorklet.addModule(workletUrl);
+  } finally {
+    URL.revokeObjectURL(workletUrl);
+  }
+
+  const node = new AudioWorkletNode(audioContext, "alex-pcm-recorder");
+  const sink = audioContext.createGain();
+  sink.gain.value = 0;
+  node.port.onmessage = (event) => {
+    if (event.data?.type !== "chunk") return;
+    pushSamples(new Float32Array(event.data.samples), event.data.rms);
+  };
+
+  source.connect(node);
+  node.connect(sink);
+  sink.connect(audioContext.destination);
+
+  return {
+    recorderType: "audio-worklet",
+    flush() {
+      node.port.postMessage({ type: "flush" });
+    },
+    disconnect() {
+      node.port.onmessage = null;
+      node.port.close?.();
+      disconnectAudioNode(node);
+      disconnectAudioNode(sink);
+    }
+  };
+}
+
+function createScriptProcessorRecorder(audioContext, source, pushSamples) {
+  const processor = audioContext.createScriptProcessor(4096, 1, 1);
+  const sink = audioContext.createGain();
+  sink.gain.value = 0;
+  processor.onaudioprocess = (event) => {
+    const channel = event.inputBuffer.getChannelData(0);
+    const samples = new Float32Array(channel);
+    pushSamples(samples, calculateRms(samples));
+  };
+
+  source.connect(processor);
+  processor.connect(sink);
+  sink.connect(audioContext.destination);
+
+  return {
+    recorderType: "script-processor",
+    disconnect() {
+      processor.onaudioprocess = null;
+      disconnectAudioNode(processor);
+      disconnectAudioNode(sink);
+    }
+  };
+}
+
+function disconnectAudioNode(node) {
+  try {
+    node.disconnect();
+  } catch (error) {
+    // Already disconnected.
+  }
+}
+
+function finishPcmRecording(chunks, inputSampleRateHertz, recorderType, trackEvents) {
+  const inputSampleRate = Math.round(inputSampleRateHertz);
+  const merged = mergeAudioChunks(chunks);
+  const outputSampleRate = inputSampleRate > VOICE_TARGET_SAMPLE_RATE ? VOICE_TARGET_SAMPLE_RATE : inputSampleRate;
+  const outputSamples = outputSampleRate === inputSampleRate
+    ? merged
+    : downsamplePcm(merged, inputSampleRate, outputSampleRate);
+  const audioBuffer = encodeWav(outputSamples, outputSampleRate);
+
+  return {
+    audioBuffer,
+    sampleRateHertz: outputSampleRate,
+    inputSampleRateHertz: inputSampleRate,
+    durationMs: inputSampleRate ? Math.round((merged.length / inputSampleRate) * 1000) : 0,
+    chunkCount: chunks.length,
+    audioByteLength: audioBuffer.byteLength,
+    recorderType,
+    trackEvents
+  };
+}
+
+function calculateRms(samples) {
+  if (!samples.length) return 0;
+  let sum = 0;
+  for (let i = 0; i < samples.length; i += 1) sum += samples[i] * samples[i];
+  return Math.sqrt(sum / samples.length);
+}
+
+function downsamplePcm(samples, inputSampleRate, outputSampleRate) {
+  if (outputSampleRate >= inputSampleRate) return samples;
+  const ratio = inputSampleRate / outputSampleRate;
+  const length = Math.floor(samples.length / ratio);
+  const result = new Float32Array(length);
+  let inputOffset = 0;
+
+  for (let outputOffset = 0; outputOffset < length; outputOffset += 1) {
+    const nextInputOffset = Math.round((outputOffset + 1) * ratio);
+    let sum = 0;
+    let count = 0;
+    for (let i = inputOffset; i < nextInputOffset && i < samples.length; i += 1) {
+      sum += samples[i];
+      count += 1;
+    }
+    result[outputOffset] = count ? sum / count : 0;
+    inputOffset = nextInputOffset;
+  }
+
+  return result;
 }
 
 function mergeAudioChunks(chunks) {
@@ -870,7 +1065,7 @@ function arrayBufferToBase64(buffer) {
   return btoa(binary);
 }
 
-async function askAlexByVoice(audioBuffer, sampleRateHertz) {
+async function askAlexByVoice(recording, stopReason) {
   const response = await fetch("/api/voice-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -878,12 +1073,27 @@ async function askAlexByVoice(audioBuffer, sampleRateHertz) {
       messages: state.messages.slice(-VOICE_HISTORY_LIMIT),
       profile: getProfilePayload(),
       mode: state.talkMode,
-      audioContent: arrayBufferToBase64(audioBuffer),
-      sampleRateHertz
+      audioContent: arrayBufferToBase64(recording.audioBuffer),
+      sampleRateHertz: recording.sampleRateHertz,
+      voiceDiagnostics: {
+        stopReason,
+        durationMs: recording.durationMs,
+        inputSampleRateHertz: recording.inputSampleRateHertz,
+        sampleRateHertz: recording.sampleRateHertz,
+        chunkCount: recording.chunkCount,
+        audioByteLength: recording.audioByteLength,
+        recorderType: recording.recorderType,
+        trackEvents: recording.trackEvents
+      }
     })
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Alex voice is unavailable.");
+  logVoiceDebug("transcript-received", {
+    transcriptLength: data.transcript.length,
+    transcriptWordCount: data.transcript.split(/\s+/).filter(Boolean).length,
+    speechResultCount: data.voiceDiagnostics?.speechResultCount
+  });
 
   appendMessage("user", data.transcript);
   appendMessage("assistant", data.reply);

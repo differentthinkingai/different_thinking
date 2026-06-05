@@ -17,7 +17,7 @@ const vertexProject = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PRO
 const maxOutputTokens = Number(process.env.MAX_OUTPUT_TOKENS || 2000);
 const maxRequestBytes = Number(process.env.MAX_REQUEST_BYTES || 8_000_000);
 const speechLanguageCode = process.env.SPEECH_LANGUAGE_CODE || "en-GB";
-const speechModel = process.env.SPEECH_MODEL || "";
+const speechModel = process.env.SPEECH_MODEL || "latest_long";
 const ttsLanguageCode = process.env.TTS_LANGUAGE_CODE || "en-GB";
 const ttsVoiceName = process.env.TTS_VOICE_NAME || "en-GB-Chirp3-HD-Aoede";
 const ttsSsmlGender = process.env.TTS_SSML_GENDER || "FEMALE";
@@ -309,6 +309,33 @@ function readBody(req) {
   });
 }
 
+function logVoiceDebug(event, detail = {}) {
+  console.info(`[voice] ${event}`, detail);
+}
+
+function normalizeVoiceDiagnostics(value) {
+  if (!value || typeof value !== "object") return {};
+  const diagnostics = {};
+  [
+    "stopReason",
+    "durationMs",
+    "inputSampleRateHertz",
+    "sampleRateHertz",
+    "chunkCount",
+    "audioByteLength",
+    "recorderType"
+  ].forEach((key) => {
+    if (value[key] !== undefined) diagnostics[key] = value[key];
+  });
+  if (Array.isArray(value.trackEvents)) {
+    diagnostics.trackEvents = value.trackEvents.slice(0, 10).map((event) => ({
+      type: String(event?.type || ""),
+      atMs: Number(event?.atMs || 0)
+    }));
+  }
+  return diagnostics;
+}
+
 async function handleChat(req, res) {
   try {
     validateChatProvider();
@@ -329,15 +356,30 @@ async function handleVoiceChat(req, res) {
     const body = JSON.parse(await readBody(req));
     const audioContent = String(body.audioContent || "").replace(/^data:audio\/[a-z0-9+.-]+;base64,/i, "");
     const sampleRateHertz = Number(body.sampleRateHertz);
+    const voiceDiagnostics = normalizeVoiceDiagnostics(body.voiceDiagnostics);
     if (!audioContent) throw new Error("No voice recording was received.");
     if (!Number.isFinite(sampleRateHertz) || sampleRateHertz <= 0) {
       throw new Error("The voice recording sample rate was not available.");
     }
 
-    const transcript = await transcribeSpeech(audioContent, sampleRateHertz);
+    logVoiceDebug("voice-chat-request", {
+      ...voiceDiagnostics,
+      sampleRateHertz,
+      base64Length: audioContent.length,
+      approxAudioBytes: Math.floor(audioContent.length * 3 / 4)
+    });
+
+    const speech = await transcribeSpeech(audioContent, sampleRateHertz);
+    const transcript = speech.transcript;
     if (!transcript) {
       throw new Error("I could not hear enough speech to transcribe. Please try again.");
     }
+    logVoiceDebug("speech-transcript", {
+      transcriptLength: transcript.length,
+      transcriptWordCount: transcript.split(/\s+/).filter(Boolean).length,
+      speechResultCount: speech.resultCount,
+      speechModel
+    });
 
     const input = normalizeMessages(body.messages)
       .slice(-9)
@@ -350,7 +392,12 @@ async function handleVoiceChat(req, res) {
       transcript,
       reply,
       audioContent: audio.audioContent,
-      audioMimeType: audio.mimeType
+      audioMimeType: audio.mimeType,
+      voiceDiagnostics: {
+        ...voiceDiagnostics,
+        speechResultCount: speech.resultCount,
+        speechModel
+      }
     });
   } catch (error) {
     sendJson(res, 500, { error: error.message });
@@ -566,10 +613,14 @@ async function transcribeSpeech(audioContent, sampleRateHertz) {
     throw new Error(data.error?.message || "Google Speech-to-Text request failed.");
   }
 
-  return data.results
+  const transcript = data.results
     ?.map((result) => result.alternatives?.[0]?.transcript || "")
     ?.join(" ")
     ?.trim() || "";
+  return {
+    transcript,
+    resultCount: Array.isArray(data.results) ? data.results.length : 0
+  };
 }
 
 async function synthesizeSpeech(text) {
