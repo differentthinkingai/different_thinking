@@ -228,12 +228,16 @@ p {
 }
 
 #intro-screen {
-  padding: 52px var(--screen-pad-x) 38px;
+  padding: 0 var(--screen-pad-x) 38px;
   background: var(--phone-bg);
   overflow: hidden;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
+}
+
+.phone.intro-active .status {
+  display: none;
 }
 
 .intro-orbit,
@@ -254,33 +258,50 @@ p {
   filter: saturate(1.12) contrast(1.02);
 }
 
-.intro-orb-one { left: -18%; top: 17%; }
-.intro-orb-two { left: 28%; top: 7%; }
-.intro-orb-three { right: -18%; top: 18%; }
-.intro-orb-four { right: -10%; bottom: 22%; }
-.intro-orb-five { left: -12%; bottom: 20%; }
-.intro-orb-six { left: 28%; bottom: 9%; }
+.intro-orb {
+  width: 39.5%;
+  filter: saturate(1.06) contrast(1.01);
+  translate: -50% -50%;
+}
+
+.intro-orb-one { left: 11.5%; top: 23%; }
+.intro-orb-two { left: 50%; top: 13.8%; }
+.intro-orb-three { left: 88.5%; top: 23%; }
+.intro-orb-four { left: -8.5%; top: 47.2%; }
+.intro-orb-five { left: 108.5%; top: 47.2%; }
+.intro-orb-six { left: 11.8%; top: 71.8%; }
+.intro-orb-seven { left: 88.2%; top: 71.8%; }
+.intro-orb-eight {
+  left: 50%;
+  top: 81%;
+  width: 42%;
+}
 
 .intro-copy {
-  position: relative;
+  position: absolute;
+  top: 35.4%;
+  left: 50%;
   z-index: 2;
   display: grid;
   justify-items: center;
-  gap: 18px;
-  width: min(290px, 78%);
+  gap: 22px;
+  width: min(300px, 75%);
+  translate: -50% 0;
 }
 
 .intro-mark {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
 }
 
 .intro-copy h1 {
   margin: 0;
   color: #414141;
-  font-size: clamp(28px, 7vw, 36px);
+  font-size: clamp(28px, 7.2vw, 30px);
   font-weight: 430;
-  line-height: 1.08;
+  line-height: 1.1;
+  text-wrap: balance;
+  overflow-wrap: normal;
 }
 
 .welcome-start-button {
@@ -323,16 +344,16 @@ p {
 .intro-join-button {
   position: absolute;
   z-index: 2;
-  right: var(--screen-pad-x);
-  bottom: 8.7%;
-  left: var(--screen-pad-x);
-  height: 54px;
-  min-height: 54px;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  height: 50px;
+  min-height: 50px;
   padding: 0 22px;
-  border-radius: var(--primary-radius);
+  border-radius: 999px;
   background: #414141;
   color: #ffffff;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 430;
 }
 
@@ -2049,28 +2070,30 @@ input:focus {
 
 .talk-actions {
   position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, clamp(120px, 34vw, 146px));
+  align-items: center;
+  justify-content: center;
+  gap: clamp(26px, 8vw, 38px);
   width: 100%;
-  height: 188px;
-  margin-top: 16px;
+  height: clamp(132px, 18vh, 160px);
+  margin-top: 6px;
   flex: 0 0 auto;
 }
 
 .voice-button,
-.text-mode-button,
-.stop-button {
-  position: absolute;
+.text-mode-button {
+  position: static;
   display: grid;
   place-items: center;
+  width: clamp(120px, 34vw, 146px);
+  height: clamp(120px, 34vw, 146px);
   padding: 0;
   border-radius: 50%;
   color: var(--button);
 }
 
 .voice-button {
-  top: 8px;
-  left: 48px;
-  width: 142px;
-  height: 142px;
   background: var(--button);
   color: #ffffff;
 }
@@ -2085,17 +2108,12 @@ input:focus {
 }
 
 .voice-button:disabled,
-.text-mode-button:disabled,
-.stop-button:disabled {
+.text-mode-button:disabled {
   cursor: default;
   opacity: 0.42;
 }
 
 .text-mode-button {
-  top: 8px;
-  right: 48px;
-  width: 142px;
-  height: 142px;
   background: #ffffff;
   color: var(--button);
   box-shadow: 0 18px 42px rgba(35, 35, 35, 0.05);
@@ -2118,23 +2136,6 @@ input:focus {
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 10px 0 #ffffff;
-}
-
-.stop-button {
-  top: 124px;
-  left: 50%;
-  width: 72px;
-  height: 72px;
-  translate: -50% 0;
-  background: var(--button-soft);
-  color: var(--button);
-}
-
-.stop-button span {
-  width: 15px;
-  height: 15px;
-  border-radius: 2px;
-  background: currentColor;
 }
 
 .tabbar {
@@ -2437,17 +2438,30 @@ dialog::backdrop {
   }
 
   .intro-orb {
+    width: 35.5%;
+  }
+
+  .intro-orb-one { top: 22%; }
+  .intro-orb-two { top: 13.2%; }
+  .intro-orb-three { top: 22%; }
+  .intro-orb-four { top: 46%; }
+  .intro-orb-five { top: 46%; }
+  .intro-orb-six { top: 70.5%; }
+  .intro-orb-seven { top: 70.5%; }
+
+  .intro-orb-eight {
     width: 38%;
+    top: 82%;
   }
 
   .intro-copy h1 {
-    font-size: clamp(27px, 7.4vw, 34px);
+    font-size: clamp(26px, 7vw, 29px);
   }
 
   .intro-join-button {
-    bottom: 6%;
-    height: 50px;
-    min-height: 50px;
+    bottom: 14px;
+    height: 48px;
+    min-height: 48px;
   }
 
   #welcome-screen {
@@ -2830,29 +2844,16 @@ dialog::backdrop {
   }
 
   .talk-actions {
-    height: 142px;
-    margin-top: 20px;
+    grid-template-columns: repeat(2, 104px);
+    height: 124px;
+    margin-top: 8px;
+    gap: 28px;
   }
 
   .voice-button,
   .text-mode-button {
-    top: 6px;
     width: 104px;
     height: 104px;
-  }
-
-  .voice-button {
-    left: 48px;
-  }
-
-  .text-mode-button {
-    right: 48px;
-  }
-
-  .stop-button {
-    top: 94px;
-    width: 58px;
-    height: 58px;
   }
 
   .text-talk-mode {
@@ -3031,7 +3032,7 @@ dialog::backdrop {
 
 .reveal-layout-summary .reveal-panel {
   width: min(336px, calc(100% - 44px));
-  margin-top: 78px;
+  margin-top: clamp(112px, 15.5vh, 128px);
   padding: 18px 16px;
   border-radius: 18px;
 }
@@ -3111,15 +3112,15 @@ dialog::backdrop {
 }
 
 .voice-orb-panel {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   width: 100%;
-  height: auto;
-  min-height: 218px;
+  height: clamp(288px, 38vh, 350px);
+  min-height: 0;
   margin: 0;
 }
 
 .app-screen #talk-orb {
-  width: min(74vw, 300px);
+  width: min(82vw, 330px);
 }
 
 .voice-glow {
@@ -3145,46 +3146,27 @@ dialog::backdrop {
 .talk-actions {
   position: relative;
   display: grid;
-  grid-template-columns: 76px 76px 54px;
+  grid-template-columns: repeat(2, clamp(116px, 34vw, 142px));
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: clamp(28px, 7vw, 38px);
   width: 100%;
-  height: 96px;
-  margin-top: 8px;
-  padding-bottom: 10px;
+  height: clamp(124px, 18vh, 152px);
+  margin-top: 0;
+  padding-bottom: 0;
   flex: 0 0 auto;
 }
 
 .voice-button,
-.text-mode-button,
-.stop-button {
+.text-mode-button {
   position: static;
   translate: none;
 }
 
 .voice-button,
 .text-mode-button {
-  width: 76px;
-  height: 76px;
-}
-
-.voice-button span {
-  transform: scale(0.62);
-}
-
-.text-mode-button span {
-  transform: scale(0.68);
-}
-
-.stop-button {
-  width: 54px;
-  height: 54px;
-}
-
-.stop-button:disabled {
-  opacity: 0;
-  pointer-events: none;
+  width: clamp(116px, 34vw, 142px);
+  height: clamp(116px, 34vw, 142px);
 }
 
 .text-talk-mode {
@@ -3398,7 +3380,7 @@ dialog::backdrop {
   }
 
   .reveal-layout-summary .reveal-panel {
-    margin-top: 72px;
+    margin-top: clamp(88px, 12.5vh, 98px);
     padding: 16px 14px;
   }
 
@@ -3419,29 +3401,24 @@ dialog::backdrop {
   }
 
   .voice-orb-panel {
-    min-height: 190px;
+    height: clamp(230px, 34vh, 280px);
   }
 
   .app-screen #talk-orb {
-    width: min(68vw, 260px);
+    width: min(74vw, 280px);
   }
 
   .talk-actions {
-    grid-template-columns: 68px 68px 50px;
-    height: 84px;
-    gap: 14px;
-    margin-top: 4px;
+    grid-template-columns: repeat(2, clamp(104px, 31vw, 118px));
+    height: 118px;
+    gap: clamp(22px, 6vw, 30px);
+    margin-top: 0;
   }
 
   .voice-button,
   .text-mode-button {
-    width: 68px;
-    height: 68px;
-  }
-
-  .stop-button {
-    width: 50px;
-    height: 50px;
+    width: clamp(104px, 31vw, 118px);
+    height: clamp(104px, 31vw, 118px);
   }
 
   .top-of-mind {
@@ -3497,20 +3474,8 @@ dialog::backdrop {
   height: 44px;
 }
 
-.talk-actions:has(.stop-button:disabled) {
-  grid-template-columns: 76px 76px;
-}
-
-.stop-button:disabled {
-  display: none;
-}
-
 @media (max-height: 760px) {
   .welcome-start-button {
     width: auto;
-  }
-
-  .talk-actions:has(.stop-button:disabled) {
-    grid-template-columns: 68px 68px;
   }
 }

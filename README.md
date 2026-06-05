@@ -10,7 +10,7 @@ Create `.env.local`:
 AI_PROVIDER=vertex
 GOOGLE_CLOUD_PROJECT=your_project_id
 GOOGLE_CLOUD_LOCATION=global
-VERTEX_MODEL=gemini-2.5-flash
+VERTEX_MODEL=gemini-3.5-flash
 ```
 
 For voice chat, the same Google Cloud project also needs Speech-to-Text and
@@ -26,8 +26,12 @@ Optional voice settings:
 ```bash
 SPEECH_LANGUAGE_CODE=en-GB
 TTS_LANGUAGE_CODE=en-GB
-TTS_SSML_GENDER=MALE
+TTS_VOICE_NAME=en-GB-Chirp3-HD-Aoede
+TTS_SSML_GENDER=FEMALE
 ```
+
+`TTS_VOICE_NAME` chooses the exact Google Text-to-Speech voice. If it is not
+set, the app falls back to `TTS_SSML_GENDER`.
 
 Start the server:
 

@@ -303,6 +303,7 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 function showScreen(id) {
   $$(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === id));
   const phone = $(".phone");
+  phone?.classList.toggle("intro-active", id === "intro-screen");
   phone?.classList.toggle("quiz-active", id === "quiz-screen");
   phone?.classList.toggle("reveal-active", id === "reveal-screen");
   phone?.classList.toggle("immersive-active", id === "quiz-screen" || id === "reveal-screen");
@@ -669,17 +670,12 @@ function setVoiceStatus(status) {
   setOrbImages();
 
   const voiceButton = $("#voice-button");
-  const stopButton = $("#finish-session");
   const textButton = $("#mode-toggle");
   voiceButton?.classList.toggle("is-recording", status === "listening");
   voiceButton?.classList.toggle("is-speaking", status === "speaking");
   if (voiceButton) {
     voiceButton.disabled = status === "thinking";
-    voiceButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Alex is speaking" : "Start voice chat");
-  }
-  if (stopButton) {
-    stopButton.disabled = status === "idle";
-    stopButton.setAttribute("aria-label", status === "listening" ? "Stop recording" : status === "speaking" ? "Stop Alex voice" : "Stop voice chat");
+    voiceButton.setAttribute("aria-label", status === "listening" ? "Microphone listening" : status === "speaking" ? "Alex is speaking" : "Start voice chat");
   }
   if (textButton) textButton.disabled = status === "listening" || status === "thinking";
 }
@@ -697,24 +693,6 @@ async function handleVoiceButton() {
   }
 
   await startVoiceRecording();
-}
-
-async function handleVoiceStop() {
-  if (state.voiceStatus === "listening") {
-    await stopVoiceRecording();
-    return;
-  }
-
-  if (state.voiceStatus === "thinking" && state.introVoiceController) {
-    state.introVoiceController.abort();
-    state.introVoiceController = null;
-    setVoiceStatus("idle");
-    return;
-  }
-
-  if (state.voiceStatus === "speaking") {
-    stopActiveVoiceAudio();
-  }
 }
 
 async function startVoiceRecording() {
@@ -1001,8 +979,6 @@ function bindEvents() {
   $("#voice-mode-toggle").addEventListener("click", () => setTalkUiMode("voice"));
 
   $("#voice-button").addEventListener("click", handleVoiceButton);
-
-  $("#finish-session").addEventListener("click", handleVoiceStop);
 
   $("#chat-form").addEventListener("submit", async (event) => {
     event.preventDefault();
