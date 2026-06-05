@@ -15,9 +15,14 @@ const vertexModel = process.env.VERTEX_MODEL || process.env.GEMINI_MODEL || "gem
 const vertexLocation = process.env.GOOGLE_CLOUD_LOCATION || process.env.VERTEX_LOCATION || "global";
 const vertexProject = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
 const maxOutputTokens = Number(process.env.MAX_OUTPUT_TOKENS || 2000);
-const maxRequestBytes = Number(process.env.MAX_REQUEST_BYTES || 8_000_000);
+const maxRequestBytes = Number(process.env.MAX_REQUEST_BYTES || 16_000_000);
+const maxMessageChars = Number(process.env.MAX_MESSAGE_CHARS || 12_000);
+const maxVoiceTranscriptChars = Number(process.env.MAX_VOICE_TRANSCRIPT_CHARS || 20_000);
 const speechLanguageCode = process.env.SPEECH_LANGUAGE_CODE || "en-GB";
 const speechModel = process.env.SPEECH_MODEL || "latest_long";
+const speechSyncMaxMs = Number(process.env.SPEECH_SYNC_MAX_MS || 55_000);
+const speechOperationPollMs = Number(process.env.SPEECH_OPERATION_POLL_MS || 1_000);
+const speechOperationTimeoutMs = Number(process.env.SPEECH_OPERATION_TIMEOUT_MS || 120_000);
 const ttsLanguageCode = process.env.TTS_LANGUAGE_CODE || "en-GB";
 const ttsVoiceName = process.env.TTS_VOICE_NAME || "en-GB-Chirp3-HD-Aoede";
 const ttsSsmlGender = process.env.TTS_SSML_GENDER || "FEMALE";
@@ -319,11 +324,15 @@ function normalizeVoiceDiagnostics(value) {
   [
     "stopReason",
     "durationMs",
+    "wallDurationMs",
     "inputSampleRateHertz",
     "sampleRateHertz",
     "chunkCount",
     "audioByteLength",
-    "recorderType"
+    "recorderType",
+    "voiceHadSignal",
+    "maxRecordingMs",
+    "silenceGraceMs"
   ].forEach((key) => {
     if (value[key] !== undefined) diagnostics[key] = value[key];
   });
@@ -369,7 +378,9 @@ async function handleVoiceChat(req, res) {
       approxAudioBytes: Math.floor(audioContent.length * 3 / 4)
     });
 
-    const speech = await transcribeSpeech(audioContent, sampleRateHertz);
+    const speech = await transcribeSpeech(audioContent, sampleRateHertz, {
+      durationMs: voiceDiagnostics.durationMs
+    });
     const transcript = speech.transcript;
     if (!transcript) {
       throw new Error("I could not hear enough speech to transcribe. Please try again.");
@@ -378,25 +389,36 @@ async function handleVoiceChat(req, res) {
       transcriptLength: transcript.length,
       transcriptWordCount: transcript.split(/\s+/).filter(Boolean).length,
       speechResultCount: speech.resultCount,
-      speechModel
+      speechModel,
+      recognizer: speech.recognizer
     });
 
     const input = normalizeMessages(body.messages)
       .slice(-9)
-      .concat({ role: "user", content: transcript });
+      .concat({ role: "user", content: limitCharacters(transcript, maxVoiceTranscriptChars) });
     const systemInstructions = buildSystemInstructions(body.profile, body.mode);
     const reply = await askConfiguredModel(input, systemInstructions);
-    const audio = await synthesizeSpeech(reply);
+    let audio = null;
+    let audioError = null;
+    try {
+      audio = await synthesizeSpeech(reply);
+    } catch (error) {
+      audioError = error.message || "Google Text-to-Speech request failed.";
+      logVoiceDebug("tts-failed", { message: audioError });
+    }
 
     sendJson(res, 200, {
       transcript,
       reply,
-      audioContent: audio.audioContent,
-      audioMimeType: audio.mimeType,
+      audioContent: audio?.audioContent || null,
+      audioMimeType: audio?.mimeType || null,
+      audioError,
       voiceDiagnostics: {
         ...voiceDiagnostics,
         speechResultCount: speech.resultCount,
-        speechModel
+        speechModel,
+        recognizer: speech.recognizer,
+        ttsError: audioError
       }
     });
   } catch (error) {
@@ -437,8 +459,13 @@ function validateChatProvider() {
 function normalizeMessages(messages) {
   return (Array.isArray(messages) ? messages : []).map((message) => ({
     role: message.role === "assistant" ? "assistant" : "user",
-    content: String(message.content || "").slice(0, 2000)
+    content: limitCharacters(message.content, maxMessageChars)
   }));
+}
+
+function limitCharacters(value, maxChars) {
+  const text = String(value || "");
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
 }
 
 function buildSystemInstructions(profile, mode = "Conversation") {
@@ -586,8 +613,27 @@ function base64Url(value) {
   return Buffer.from(value).toString("base64url");
 }
 
-async function transcribeSpeech(audioContent, sampleRateHertz) {
+async function transcribeSpeech(audioContent, sampleRateHertz, options = {}) {
   const accessToken = await getGoogleAccessToken();
+  const config = buildSpeechConfig(sampleRateHertz);
+  const durationMs = Number(options.durationMs || 0);
+
+  if (durationMs >= speechSyncMaxMs) {
+    return transcribeSpeechLongRunning(accessToken, config, audioContent);
+  }
+
+  try {
+    return await transcribeSpeechSync(accessToken, config, audioContent);
+  } catch (error) {
+    if (isSpeechLengthError(error)) {
+      logVoiceDebug("speech-sync-fallback", { message: error.message });
+      return transcribeSpeechLongRunning(accessToken, config, audioContent);
+    }
+    throw error;
+  }
+}
+
+function buildSpeechConfig(sampleRateHertz) {
   const config = {
     encoding: "LINEAR16",
     sampleRateHertz: Math.round(sampleRateHertz),
@@ -595,7 +641,10 @@ async function transcribeSpeech(audioContent, sampleRateHertz) {
     enableAutomaticPunctuation: true
   };
   if (speechModel) config.model = speechModel;
+  return config;
+}
 
+async function transcribeSpeechSync(accessToken, config, audioContent) {
   const speechResponse = await fetch("https://speech.googleapis.com/v1/speech:recognize", {
     method: "POST",
     headers: {
@@ -613,14 +662,73 @@ async function transcribeSpeech(audioContent, sampleRateHertz) {
     throw new Error(data.error?.message || "Google Speech-to-Text request failed.");
   }
 
+  return extractSpeechTranscript(data, "sync");
+}
+
+async function transcribeSpeechLongRunning(accessToken, config, audioContent) {
+  const startResponse = await fetch("https://speech.googleapis.com/v1/speech:longrunningrecognize", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      config,
+      audio: { content: audioContent }
+    })
+  });
+
+  const operation = await startResponse.json();
+  if (!startResponse.ok || !operation.name) {
+    throw new Error(operation.error?.message || "Google Speech-to-Text long-running request failed.");
+  }
+
+  const deadline = Date.now() + speechOperationTimeoutMs;
+  while (Date.now() < deadline) {
+    await wait(speechOperationPollMs);
+    const operationResponse = await fetch(speechOperationUrl(operation.name), {
+      headers: { "Authorization": `Bearer ${accessToken}` }
+    });
+    const data = await operationResponse.json();
+    if (!operationResponse.ok) {
+      throw new Error(data.error?.message || "Google Speech-to-Text operation polling failed.");
+    }
+    if (!data.done) continue;
+    if (data.error) {
+      throw new Error(data.error.message || "Google Speech-to-Text operation failed.");
+    }
+    return extractSpeechTranscript(data.response || {}, "longrunning");
+  }
+
+  throw new Error("Google Speech-to-Text took too long to transcribe the recording.");
+}
+
+function speechOperationUrl(operationName) {
+  const cleanName = String(operationName || "").replace(/^\/+/, "");
+  const encodedName = cleanName.split("/").map((part) => encodeURIComponent(part)).join("/");
+  return cleanName.includes("/")
+    ? `https://speech.googleapis.com/v1/${encodedName}`
+    : `https://speech.googleapis.com/v1/operations/${encodedName}`;
+}
+
+function extractSpeechTranscript(data, recognizer) {
   const transcript = data.results
     ?.map((result) => result.alternatives?.[0]?.transcript || "")
     ?.join(" ")
     ?.trim() || "";
   return {
     transcript,
-    resultCount: Array.isArray(data.results) ? data.results.length : 0
+    resultCount: Array.isArray(data.results) ? data.results.length : 0,
+    recognizer
   };
+}
+
+function isSpeechLengthError(error) {
+  return /long|duration|60\s*seconds|too large|too long/i.test(error.message || "");
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function synthesizeSpeech(text) {

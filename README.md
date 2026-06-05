@@ -25,13 +25,22 @@ Optional voice settings:
 
 ```bash
 SPEECH_LANGUAGE_CODE=en-GB
+SPEECH_MODEL=latest_long
+SPEECH_SYNC_MAX_MS=55000
 TTS_LANGUAGE_CODE=en-GB
 TTS_VOICE_NAME=en-GB-Chirp3-HD-Aoede
 TTS_SSML_GENDER=FEMALE
+MAX_REQUEST_BYTES=16000000
+MAX_MESSAGE_CHARS=12000
+MAX_VOICE_TRANSCRIPT_CHARS=20000
 ```
 
 `TTS_VOICE_NAME` chooses the exact Google Text-to-Speech voice. If it is not
 set, the app falls back to `TTS_SSML_GENDER`.
+
+Voice input records up to 60 seconds in the browser and allows pauses while the
+user is speaking. Recordings near the Speech-to-Text synchronous limit use
+Google's long-running recognizer automatically.
 
 Start the server:
 

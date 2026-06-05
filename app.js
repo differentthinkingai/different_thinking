@@ -266,7 +266,9 @@ const libraryCards = [
 const topOfMindCard = libraryCards[0];
 
 const VOICE_ACTIVITY_RMS_THRESHOLD = 0.008;
-const VOICE_MAX_RECORDING_MS = 59000;
+const VOICE_MAX_RECORDING_MS = 60000;
+const VOICE_SILENCE_GRACE_MS = 10000;
+const VOICE_SILENCE_CHECK_MS = 250;
 const VOICE_MIN_RECORDING_MS = 600;
 const VOICE_TARGET_SAMPLE_RATE = 16000;
 const VOICE_HISTORY_LIMIT = 9;
@@ -287,6 +289,7 @@ const state = {
   voiceRecorder: null,
   voiceRecordingStartedAt: 0,
   voiceMaxTimer: null,
+  voiceSilenceTimer: null,
   voiceLastActivityAt: 0,
   voiceHasSignal: false,
   activeVoiceAudio: null,
@@ -621,7 +624,9 @@ function setTalkContext(cardOrTitle) {
 
 function clearVoiceTimers() {
   window.clearTimeout(state.voiceMaxTimer);
+  window.clearInterval(state.voiceSilenceTimer);
   state.voiceMaxTimer = null;
+  state.voiceSilenceTimer = null;
 }
 
 function logVoiceDebug(event, detail = {}) {
@@ -733,6 +738,12 @@ async function startVoiceRecording() {
     state.voiceMaxTimer = window.setTimeout(() => {
       if (state.voiceStatus === "listening") stopVoiceRecording("max-duration");
     }, VOICE_MAX_RECORDING_MS);
+    state.voiceSilenceTimer = window.setInterval(() => {
+      if (state.voiceStatus !== "listening" || !state.voiceHasSignal) return;
+      if (Date.now() - state.voiceLastActivityAt > VOICE_SILENCE_GRACE_MS) {
+        stopVoiceRecording("silence-timeout");
+      }
+    }, VOICE_SILENCE_CHECK_MS);
     setVoiceStatus("listening");
   } catch (error) {
     setVoiceStatus("idle");
@@ -753,7 +764,10 @@ async function stopVoiceRecording(reason = "manual") {
 
   try {
     const recordingDuration = Date.now() - state.voiceRecordingStartedAt;
+    const voiceHadSignal = state.voiceHasSignal;
     const recording = await recorder.stop();
+    recording.wallDurationMs = recordingDuration;
+    recording.voiceHadSignal = voiceHadSignal;
     logVoiceDebug("recording-stopped", {
       reason,
       wallDurationMs: recordingDuration,
@@ -763,6 +777,7 @@ async function stopVoiceRecording(reason = "manual") {
       chunkCount: recording.chunkCount,
       audioByteLength: recording.audioByteLength,
       recorderType: recording.recorderType,
+      voiceHadSignal,
       trackEvents: recording.trackEvents
     });
     if (recordingDuration < VOICE_MIN_RECORDING_MS) {
@@ -835,8 +850,11 @@ async function createPcmRecorder(onVoiceActivity) {
     sampleRateHertz: audioContext.sampleRate,
     async stop() {
       const inputSampleRateHertz = audioContext.sampleRate;
-      connection.flush?.();
-      await new Promise((resolve) => window.setTimeout(resolve, 120));
+      if (connection.flush) {
+        await connection.flush();
+      } else {
+        await new Promise((resolve) => window.setTimeout(resolve, 120));
+      }
       connection.disconnect();
       disconnectAudioNode(source);
       stream.getTracks().forEach((track) => track.stop());
@@ -871,16 +889,18 @@ class AlexPcmRecorder extends AudioWorkletProcessor {
   }
 
   flush() {
-    if (!this.offset) return;
-    const samples = this.buffer.slice(0, this.offset);
-    let sum = 0;
-    for (let i = 0; i < samples.length; i += 1) sum += samples[i] * samples[i];
-    this.port.postMessage({
-      type: "chunk",
-      samples: samples.buffer,
-      rms: Math.sqrt(sum / samples.length)
-    }, [samples.buffer]);
-    this.offset = 0;
+    if (this.offset) {
+      const samples = this.buffer.slice(0, this.offset);
+      let sum = 0;
+      for (let i = 0; i < samples.length; i += 1) sum += samples[i] * samples[i];
+      this.port.postMessage({
+        type: "chunk",
+        samples: samples.buffer,
+        rms: Math.sqrt(sum / samples.length)
+      }, [samples.buffer]);
+      this.offset = 0;
+    }
+    this.port.postMessage({ type: "flushed" });
   }
 
   process(inputs) {
@@ -907,8 +927,13 @@ registerProcessor("alex-pcm-recorder", AlexPcmRecorder);
 
   const node = new AudioWorkletNode(audioContext, "alex-pcm-recorder");
   const sink = audioContext.createGain();
+  const pendingFlushResolvers = [];
   sink.gain.value = 0;
   node.port.onmessage = (event) => {
+    if (event.data?.type === "flushed") {
+      pendingFlushResolvers.splice(0).forEach((resolve) => resolve());
+      return;
+    }
     if (event.data?.type !== "chunk") return;
     pushSamples(new Float32Array(event.data.samples), event.data.rms);
   };
@@ -920,7 +945,14 @@ registerProcessor("alex-pcm-recorder", AlexPcmRecorder);
   return {
     recorderType: "audio-worklet",
     flush() {
-      node.port.postMessage({ type: "flush" });
+      return new Promise((resolve) => {
+        const timeout = window.setTimeout(resolve, 250);
+        pendingFlushResolvers.push(() => {
+          window.clearTimeout(timeout);
+          resolve();
+        });
+        node.port.postMessage({ type: "flush" });
+      });
     },
     disconnect() {
       node.port.onmessage = null;
@@ -1078,11 +1110,15 @@ async function askAlexByVoice(recording, stopReason) {
       voiceDiagnostics: {
         stopReason,
         durationMs: recording.durationMs,
+        wallDurationMs: recording.wallDurationMs,
         inputSampleRateHertz: recording.inputSampleRateHertz,
         sampleRateHertz: recording.sampleRateHertz,
         chunkCount: recording.chunkCount,
         audioByteLength: recording.audioByteLength,
         recorderType: recording.recorderType,
+        voiceHadSignal: recording.voiceHadSignal,
+        maxRecordingMs: VOICE_MAX_RECORDING_MS,
+        silenceGraceMs: VOICE_SILENCE_GRACE_MS,
         trackEvents: recording.trackEvents
       }
     })
@@ -1105,6 +1141,7 @@ async function askAlexByVoice(recording, stopReason) {
   if (data.audioContent) {
     await playVoiceOutput(data.audioContent, data.audioMimeType || "audio/mpeg");
   } else {
+    if (data.audioError) logVoiceDebug("voice-output-unavailable", { message: data.audioError });
     setVoiceStatus("idle");
   }
 }
